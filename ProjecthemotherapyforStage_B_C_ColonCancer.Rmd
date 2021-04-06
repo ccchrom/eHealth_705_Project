@@ -269,7 +269,7 @@ colon.data <- colon.data %>% mutate_if(is.character, as.factor)
 colon.data <- colon.data %>% mutate_if(is.integer, as.numeric)
 colon.data<- colon.data %>%
   select(rx.factor, sex.factor, age.factor, obstruct.factor, perfor.factor, adhere.factor, differ.factor, extent.factor, mort_5yr.num) %>%
-  filter(rx.factor!="Col")
+  filter(rx.factor!="Obs")
 
 
   
