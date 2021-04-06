@@ -172,7 +172,7 @@ bar_charting(ggplot(colon.data, aes(x=surg.factor, y="", fill=surg.factor)), "ti
 library(dplyr)
 colon.data<- colon.data %>%
   select(rx, sex, age, obstruct, perfor, adhere, differ, extent, mort_5yr) %>%
-  filter(rx!="Col")
+  filter(rx!="Obs")
 
 
 colon.data<-within(colon.data, {
@@ -198,10 +198,94 @@ describe(colon.data)
 
 We decided to use mort_5yr as the response variable.
 
+## Split the data into train and test set
 
-# Regression...
+```{r}
+library(rsample)
+set.seed(78)
+train_test_split <- initial_split(colon.data, prop=0.7)
+train <- training(train_test_split)
+test <- testing(train_test_split)
+(samp <- dim(train_test_split))
+```
 
-**TODO**
+## NULL model
+
+**TODO** interpretation of the intercept
+
+```{r}
+null_model <- glm(mort_5yr ~ 1, family= binomial(logit), data = train)
+summary(null_model)
+```
+
+## Use all the variables to perform a logistic regression
+
+The treatment seems to be the only predictor of the 5 year life status. 
+
+```{r}
+model_training <- glm(mort_5yr ~ rx + sex + age + obstruct + perfor + adhere + differ + extent, family= binomial(logit), data = train)
+summary(model_training)
+```
+
+## Use the extent of tumor as predictor
+
+**TODO** Interpretation of the result
+
+```{r}
+model_training_rx_only <- glm(mort_5yr ~ rx, family= binomial(logit), data = train)
+summary(model_training_rx_only)
+```
+
+## Analysis to see if the treatment make a difference in 
+
+**TODO** explain p nd chi-square values
+
+```{r}
+library(sjPlot)
+tab_xtab(colon.data$mort_5yr, colon.data$rx , show.col.prc=TRUE, show.row.prc=TRUE, var.labels=c("Life status After 5 year", "Treatment"))
+```
+
+## multicollinearity
+
+No multicollinearity is required here, as only one predictor was required.
+
+## Anova 
+
+Here I build the NULL model using the training data set, and I use ANOVA to check if the 2 models deviance are significantly different.
+
+The ANOVA test below indicates that the combined Lev+5FU treatment has a significant impact on the 5 year life status at the 1% level of risk.
+
+```{r}
+anova(model_training_rx_only, null_model, test ="Chisq")
+```
+
+## Predict against test data
+
+```{r}
+test_results <- predict(model_training_rx_only, newdata=test)
+```
+
+## Hit Ratio
+
+**TODO** Not working and I couldn't figure out why...
+
+```{r}
+predicted.prob <- predict( model_training_rx_only, newdata=test, type = "response")
+
+str(predicted.prob)
+```
+
+```{r}
+library(forcats)
+predicted.classes <- as.factor( ifelse( predicted.prob > 0.5, "Alive", "Death" ) )
+predicted.classes <- fct_relevel( (predicted.classes) , c("Alive","Death" ) )
+tab_xtab(test$mort_5yr, predicted.classes, var.labels = c("Actual Life status", "Predicted life status"), show.row.prc = TRUE)
+```
+
+### how are the residuals
+
+## Conclusion on the logistic regression test
+
 
 # Conclusion
 
