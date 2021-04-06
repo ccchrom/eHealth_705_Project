@@ -265,19 +265,16 @@ obstruct.factor
 
 ```{r}
 library(dplyr)
-colon.data<- colon.data %>%
-  select(rx, sex, age, obstruct, perfor, adhere, differ, extent, mort_5yr) %>%
-  filter(rx!="Obs")
-
-
-colon.data<-within(colon.data, {
-  sex <- factor(sex, labels=c('female','male'))
-  differ<- factor(differ, labels = c('well', 'moderate', 'poor'))
-  extent <-factor(extent, labels = c('submucosa', 'muscle', 'serosa', 'contiguos structures'))}) 
-  #need more information on obstruct, perfor, adhere
-
 colon.data <- colon.data %>% mutate_if(is.character, as.factor)
 colon.data <- colon.data %>% mutate_if(is.integer, as.numeric)
+colon.data<- colon.data %>%
+  select(rx.factor, sex.factor, age.factor, obstruct.factor, perfor.factor, adhere.factor, differ.factor, extent.factor, mort_5yr.num) %>%
+  filter(rx.factor!="Col")
+
+
+  
+library(Hmisc)
+describe(colon.data)
 ```
 
 # Check on missing values
