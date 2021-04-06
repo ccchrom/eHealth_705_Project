@@ -165,7 +165,10 @@ bar_charting(ggplot(colon.data, aes(x=extent.factor, y="", fill=extent.factor)),
 bar_charting(ggplot(colon.data, aes(x=surg.factor, y="", fill=surg.factor)), "time from sugery to registration")
 
 ```
+
 # Convert or recode variables?
+
+```{r}
 library(dplyr)
 colon.data<- colon.data %>%
   select(rx, sex, age, obstruct, perfor, adhere, differ, extent, mort_5yr) %>%
@@ -180,17 +183,21 @@ colon.data<-within(colon.data, {
 
 colon.data <- colon.data %>% mutate_if(is.character, as.factor)
 colon.data <- colon.data %>% mutate_if(is.integer, as.numeric)
-
-library(Hmisc)
-describe(colon.data)
+```
 
 # Check on missing values
 
-**TODO**
+The data is rather complete with limited NA. There is no need to remove any input.
 
-# Determine the response variables and the potentials predictors
+```{r}
+library(Hmisc)
+describe(colon.data)
+```
 
-**TODO**
+# Logistic regression using mort_5yr
+
+We decided to use mort_5yr as the response variable.
+
 
 # Regression...
 
