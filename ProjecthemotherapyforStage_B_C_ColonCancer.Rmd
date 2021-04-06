@@ -287,11 +287,12 @@ obstruct.factor
 # Convert or recode variables?
 
 ```{r}
+colon.data<-read.csv("C:/Users/ibrah/OneDrive/EHealth/Stats/Project/colon_s.csv")
 library(dplyr)
 colon.data <- colon.data %>% mutate_if(is.character, as.factor)
 colon.data <- colon.data %>% mutate_if(is.integer, as.numeric)
 colon.data<- colon.data %>%
-  select(rx.factor, sex.factor, age.factor, obstruct.factor, perfor.factor, adhere.factor, differ.factor, extent.factor, mort_5yr.num) %>%
+  select(rx, sex, age, obstruct, perfor, adhere, differ, extent, mort_5yr, rx.factor, sex.factor, age.factor, obstruct.factor, perfor.factor, adhere.factor, differ.factor, extent.factor, mort_5yr.num) %>%
   filter(rx.factor!="Obs")
 
 
