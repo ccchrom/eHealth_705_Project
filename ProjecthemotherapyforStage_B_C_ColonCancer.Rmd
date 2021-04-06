@@ -166,8 +166,23 @@ bar_charting(ggplot(colon.data, aes(x=surg.factor, y="", fill=surg.factor)), "ti
 
 ```
 # Convert or recode variables?
+library(dplyr)
+colon.data<- colon.data %>%
+  select(rx, sex, age, obstruct, perfor, adhere, differ, extent, mort_5yr) %>%
+  filter(rx!="Col")
 
-**TODO**
+
+colon.data<-within(colon.data, {
+  sex <- factor(sex, labels=c('female','male'))
+  differ<- factor(differ, labels = c('well', 'moderate', 'poor'))
+  extent <-factor(extent, labels = c('submucosa', 'muscle', 'serosa', 'contiguos structures'))}) 
+  #need more information on obstruct, perfor, adhere
+
+colon.data <- colon.data %>% mutate_if(is.character, as.factor)
+colon.data <- colon.data %>% mutate_if(is.integer, as.numeric)
+
+library(Hmisc)
+describe(colon.data)
 
 # Check on missing values
 
