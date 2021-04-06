@@ -97,6 +97,29 @@ Levamisole-fluorouracil treatment appeared to have the greatest advantage among
 • patients treated 21 to 35 days after surgery (recurrence)
 • These results show striking contradictions to those of subset analyses in which levamisole plus fluorouracil was found to be most effective in reducing the risk of recurrence among female patients and younger patients.
 
+# Objectives
+We wish to confirm using our own process that adjuvant therapy with the combination of levamisole and fluorouracil significantly reduce death within 5 years compared with no adjuvant therapy – using only levamisole.  We chose to only include these two groups because we are only comparing adjuvant therapy against normal therapy.  Levimasole is already recognized worldwide as an antiparasitic drug that changes ones immune response, similar to methotrexate – so we are considering it a control.  We aim to achieve this by:
+1.  To assess the distributions of variables within the two treatment categories, including: (distribution plots/tables between groups)
+    a.	Sex – Male or female patients
+    b.	Age – Finding the average (or median) age that has most impact on 5 year survival
+    c.	Obstructive tumours versus non-obstructive
+    d.	If the colon was perforated by the tumor or not
+    e.	If tumours were adhered to nearby organs
+    f.	Differentiation of tumors – rated well, moderate, or poor
+    g.	The extent of local spread of the tumor which could be:
+        i.	Submucosal
+        ii.	Within muscle
+        iii.	Within the serosa – the outermost layer of organs
+        iv.	Contiguous structures – meaning nearby organs
+2.  Assessing whether there are differences in survival (or cumulative incidence of event) among different groups of participants
+    a.  This will be done by testing the null hypothesis of no difference in survival between two or more independent groups. 
+        •	H0: The two survival rates are identical, (α=0.05).    
+        •	Ha: The two survival rates are not identical.  (chi-square test)
+3.  	Investigate if any of the predictor variables have an impact on each other. (correlation)(VIF)
+4.	Using a regression model to investigate the association between five year life status and one or more categorical predictor variables within each treatment group (regression models for both groups) (predict) (train+test) (residuals)
+5.	Analyze data within the subset of Levamisole-fluorouracil to find which variables have the greatest impact on 5 year mortality.  (Reliampo)
+
+
 # Read the file
 
 ```{r}
