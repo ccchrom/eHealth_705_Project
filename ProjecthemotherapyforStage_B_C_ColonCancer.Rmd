@@ -1,26 +1,39 @@
 ---
-title: "eH705 Project, due 12-Apr-2021"
-subtitle: "hemotherapy for Stage B/C colon cancer"
+title: "eH705 Term Project"
+subtitle: "Term Project"
 author:
-  name: Neha Kalra, Matthew Jabora, Ibrahim Zifa, Sandeep Delar, Romuald Lamps 
-  affiliation: eH705 | eHealth MsC
-date: "12 Apr 2021"
+  name: Neha Kalra, Msc eHealth Candidate 
+  affiliation: eH705 | DeGroote School of Business, McMaster University
+date: "`r format(Sys.time(), '%d %B %Y')`"
 output:
   html_document: 
     number_sections: TRUE
+    fig_caption: TRUE
     code_folding: hide
     toc: yes
     toc_float: 
       toc_collapsed: true
     theme: readable
----  
+---
 
-```{r setup, eval=TRUE, include=FALSE}  
-knitr::opts_chunk$set( echo=TRUE, warning=FALSE, message=FALSE, error=FALSE, comment = NA )
+```{r echo=FALSE, message=FALSE}
+# include this code chunk as-is to set options
+knitr::opts_chunk$set(comment=NA, prompt=TRUE, echo = TRUE, message = FALSE, warning = FALSE, error = FALSE)
 options(max.print = 10000)
 options(scipen = 999)
+library(Rcmdr)
+library(car)
+library(RcmdrMisc)
+```
+```{r "basic_packages" }
+pacman::p_load(psych, xray , ggplot2, texreg, DT, excelR, dplyr, wrapr,
+               sjmisc, sjlabelled, sjstats, sjPlot, dplyr, forcats,
+               knitr, kableExtra, captioner )
+```  
 
-pacman::p_load(DT, kableExtra, magrittr, ggplot2, wrapr, generics, car)
+```{r  "setup", include=FALSE}  
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, error=FALSE, warning=FALSE, comment=NA)
+pacman::p_load( psych, ggplot2, DT,  sjPlot, knitr, DescTools )
 ```   
 
 ```{r "colorize", echo=FALSE, results="hide"}
@@ -32,263 +45,189 @@ colorize <- function(x, color) {
       x)
   } else x
 }
-```  
+``` 
 
-# Instructions
+```{r  include=FALSE, echo=FALSE}
+fig_nums <- captioner(prefix="Figure ", auto_space=FALSE, levels = 1, type = c("n", "n", "n"), infix = ".")
+tab_nums <- captioner(prefix="Table ",  auto_space=FALSE, levels = 1, type = c("n", "n", "n"), infix = ".")
 
-Your analysis should follow the steps taken in this course:
-1. Read the material provided. Sometimes very little is mentioned about the data. In all cases, I’ve provided everything I have about the dataset that you could use. You may find more information through online searches. (Good datasets are very difficult to obtain. )
-
-2. Set up your R Markdown file and read the dataset. This may be done in RStudio or in R Commander. Feel free to use either R-code directly in RStudio (R Markdown) or in R Commander (producing an R Markdown document).
-
-3. **Exploratory Data Analysis**. Produce basic tables and graphs so that you understand the data and can explain the basics in your report. You may have to google the literature to get background on some data and medical terms.
-
-4. You may have to convert some variables to factors and will likely need to recode to provide value labels for factor variables.
-
-5. Check on missing values and determine the best way of handling missing values.
-
-6. There should be one variable that qualifies as a response or dependent variable. Your focus for much of your work will be to investigate how to explain and/or predict values of the response variable by using predictor variables.
-
-7. Your work in point 6 will likely include some form of regression and, perhaps ANOVA and correlation. The regression may be linear regression or logistic regression. That will depend on the nature of the response variable. Sometimes the analysis in the journal article was conducted using survival analysis. While that topic is covered in this course, you may choose to use survival analysis or logistic regression.
-
-8. Explaining your work and the findings is extremely important. Naturally, this is a statistics course and you may use statistical terminology and notation in your reports. However, you must show that you understand the material and can explain it in plain language to others who have limited statistical backgrounds. Simply producing a mass of statistical output with no or very little explanation will not attract a very high mark.
-
-9. Outstanding term projects may receive recognition through bonus marks.
-
-10. Ideally you should start now. We are just beginning regression and you can use your project data to help learn regression and move ahead with your project.
-
-11. Good luck!
-
-# Analysis used in the study
-
-Levamisole use in combination with flourouracil in the study is based on the hope that it would add to the marginal activity of flourouracil. The aim of the study is to confirm that adjuvant therapy with the combination of levamisole and fluorouracil significantly reduced the cancer-recurrence rate as compared with the rate when no adjuvant therapy was given, where as the use if levamisole alone produced a borderline advantage. Survival was the primary end point of the study, the time to recurrence was also determined.
+tab_nums("data_table", "Table  ",  display="cite")
+fig_nums("roc_ggplot", "The  ",  display="cite")
  
-1296 patients with resected colon cancer that either was locally invasive (Stage B2) or had regional nodal involvement (Stage C) were randomly assigned to observation or to treatment for one year with levamisole combined with flourocil.
-Analysis conducted by the case study
+citef <- pryr::partial(tab_nums, display = "cite")
+```   
+
+```{r  include=FALSE, echo=FALSE}
+bump(fig_nums, level=1)
+bump(tab_nums, level=1)
+```   
+
+<style>
+p.caption {
+  font-size: 0.9em;
+  font-style: italic;
+  color: grey;
+  margin-right: 10%;
+  margin-left: 10%;  
+  text-align: center;
+}
+</style>
+
+
+***
+
+# Background & Data Attributes
+
+These are data (colon_s) are from one of the first successful trials of adjuvant chemotherapy for colon cancer. Levamisole is a low-toxicitycompound previously used to treat worm infestations in animals; 5-FU is a moderately toxic (as these things go) chemotherapy agent. There are two records per person, one for recurrence and one for death 
+
+* id:	id 
+
+* study:	1 for all patients 
+
+* rx:	Treatment - Obs(ervation), Lev(amisole), Lev(amisole)+5-FU 
+
+* sex:	1=male 
+
+* age:	in years 
+
+* obstruct: obstruction of colon by tumour 
+
+* perfor:	perforation of colon 
+
+* adhere:	adherence to nearby organs 
+
+* nodes:	number of lymph nodes with detectable cancer 
+
+* status:	censoring status 
+
+* differ:	differentiation of tumour (1=well, 2=moderate, 3=poor) 
+
+* extent:	Extent of local spread (1=submucosa, 2=muscle, 3=serosa, 4=contiguous structures) 
+
+* surg:	time from surgery to registration (0=short, 1=long) 
+
+* node4:	more than 4 positive lymph nodes 
+
+* time:	days until death 
+
+* etype:	1=recurrence,2=death 
+
+***
+# Objectives of this Report
+
+<add here>
+
+***
  
-1. Survival curves by the Kaplan- Merier Method [The Kaplan–Meier estimator also known as the product limit estimator, is a non-parametric statistic used to estimate the survival function from lifetime data. In medical research, it is often used to measure the fraction of patients living for a certain amount of time after treatment.]
-2. The Log Rank Test: It was used to determine the ratios of relapse and survival rates and to perform all multivariate analysis. Long rank test description:
-a. We are often interested in assessing whether there are differences in survival (or cumulative incidence of event) among different groups of participants. For example, in a clinical trial with a survival outcome, we might be interested in comparing survival between participants receiving a new drug as compared to a placebo (or standard therapy).
-b. The log rank test is a popular test to test the null hypothesis of no difference in survival between two or more independent groups.
-c. a test of whether the survival curves are identical (overlapping) or not. 
-d. Survival curves are estimated for each group, considered separately, using the Kaplan-Meier method and compared statistically using the log rank test.
-• The log rank test is a non-parametric test and makes no assumptions about the survival distributions. In essence, the log rank test compares the observed number of events in each group to what would be expected if the null hypothesis were true (i.e., if the survival curves were identical).
-• H0: The two survival curves are identical (or S1t = S2t) versus H1: The two survival curves are not identical (or S1t ≠ S2t, at any time t) (α=0.05).
-• The log rank statistic is approximately distributed as a chi-square test statistic. There are several forms of the test statistic, and they vary in terms of how they are computed.
-3. Cox proportional-hazards model was used to determine the ratios of relapse and survival rates.
-• The Cox proportional-hazards model (Cox, 1972) is essentially a regression model commonly used statistical in medical research for investigating the association between the survival time of patients and one or more predictor variables.
-• Kaplan-Meier curves and logrank tests - are examples of univariate analysis. They describe the survival according to one factor under investigation, but ignore the impact of any others.
-• Additionally, Kaplan-Meier curves and logrank tests are useful only when the predictor variable is categorical (e.g.: treatment A vs treatment B; males vs females). They don’t work easily for quantitative predictors such as gene expression, weight, or age.
-• Cox proportional hazards regression analysis, which works for both quantitative predictor variables and for categorical variables. Furthermore, the Cox regression model extends survival analysis methods to assess simultaneously the effect of several risk factors on survival time.
- 
+# Read Data
 
-4. Backward regression was used to find the significant prognostic factors, variables were progressively eliminated on the basis of the maximal partial-liklihood estimate (MLE) statistics.
-• All P values reported for this study are two sided.
-• Stepwise regression is the step-by-step iterative construction of a regression model that involves the selection of independent variables to be used in a final model. It involves adding or removing potential explanatory variables in succession and testing for statistical significance after each iteration.
-• The underlying goal of stepwise regression is, through a series of tests (e.g. F-tests, t-tests) to find a set of independent variables that significantly influence the dependent variable. 
-• Stepwise regression can be achieved either by trying out one independent variable at a time and including it in the regression model if it is statistically significant or by including all potential independent variables in the model and eliminating those that are not statistically significant.
-• An example of a stepwise regression using the backward elimination method would be an attempt to understand energy usage at a factory using variables such as equipment run time, equipment age, staff size, temperatures outside, and time of year. The model includes all of the variables—then each is removed, one at a time, to determine which is least statistically significant. In the end, the model might show that time of year and temperatures are most significant, possibly suggesting the peak energy consumption at the factory is when air conditioner usage is at its highest. 
-5. Exploratory subset Analysis
-Levamisole-fluorouracil treatment appeared to have the greatest advantage among
-• the male patients (in both survival and recurrence),
-• older patients (recurrence)
-• Patients with tumours that were well differentiated to moderately well differentiated (survival and recurrence)
-• patients in whom more than four nodes were involved(survival)
-• patients treated 21 to 35 days after surgery (recurrence)
-• These results show striking contradictions to those of subset analyses in which levamisole plus fluorouracil was found to be most effective in reducing the risk of recurrence among female patients and younger patients.
+Data is read using the dataset provided with the assignment.Below tables shows the dataset.
 
-# Read the file
+The relevant variables are:
+
+* Health: Percentage of government expenditures directed towards healthcare
+* Cell: Cell phone subscriptions (per 100 people)
+
+The dataset contains total of **77 observations**.
 
 ```{r}
-colon.data <- read.csv('colon_s.csv')
+wh <- read.csv("C:/Users/drnkalra/Documents/R E705/Term Project/colon_s.csv")
+wh%>% datatable(rownames = TRUE, filter="top", options = list(pageLength = 7, scrollX=T, Caption ='Tab 1'))  
 ```
+***
 
-# Exploratory Data Analysis
+# Missing Values and Treatment
 
-## Column descriptions
+In this section, the total count of missing values in each column is identified. Since the total count of NA is less than 5%, we will not treat the missing values. *Note - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.*
 
 ```{r}
-df = as.data.frame(matrix( 
-  c('id','id',
-    'rx','Treatment - Obs(ervation), Lev(amisole), Lev(amisole)+5-FU',
-    'sex','sex of the patient (1=Male)',
-    'age','age in years',
-    'obstruct','obstruction of colon by tumour',
-    'perfor','perforation of colon',
-    'adhere','adherence to nearby organs',
-    'nodes','number of lymph nodes with detectable cancer',
-    'status','censoring status',
-    'differ','differentiation of tumour (1=well, 2=moderate, 3=poor)',
-    'extent','Extent of local spread (1=submucosa, 2=muscle, 3=serosa,
-4=contiguous structures)',
-    'surg','time from surgery to registration (0=short, 1=long)',
-    'node4','more than 4 positive lymph nodes',
-    'time','days until death',
-    'loccomp','????',
-    'time.years','years until death',
-    'mort_5yr','5 years life status',
-    'age.10','Age divided by 10..',
-    'hospital','Hospital'), # the data elements 
-  ncol = 2,              # number of rows 
-  byrow = TRUE))
-colnames(df) <- c("Variable", "Description")
-
-df %>%
-  kable(caption = "World Population Health: All Countries") %>%
-  kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T) 
+MD <- colSums(is.na(wh))
+library(kableExtra)
+MD %>%
+  kable(caption = "Table 3: Total count of NA for each variable") %>%
+   kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T) 
 ```
 
-## Data display
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Few observations looking at the data in graphs above:
+
+* Below are the columns identified with NA:
+   * Obstruct - 21
+   * nodes - 18
+   * differ - 23
+   * surg - 17
+   * loccomp -20
+   * mort_5yr - 14
+* Since the total count of NA is less than 5%, we will not treat the missing values.
+  
+</div>
+
+*** 
+
+# Exploring the distribution of the data
+
+Below tree diagram shows:
+
+* Total number of observations- 929
+* 33% of the observations are for patients who were given levamisole (Lev).
+* 33% were given levamisole + fluorouracil (Lev +5FU)
+* 34% constitutes the controls group.
+* there is almost equal distribution of male and females in both the groups (Lev and Lev+5FU)
+* Majority of the patients belong to the age group of 60+ followed by 40-59 and <40 years.
+
+```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2:add"}
+library(vtree)
+vtree(wh, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", 
+  cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
+```
+**Frequencies and percentages by Sex**
+
+Below table shows the distribution of sexes in the different treatment therapies
+```{r}
+x<- sjt.xtab(wh$rx.factor, wh$sex.factor, show.col.prc = TRUE,
+             CSS = list(css.table = "border: 2px solid;",
+                    css.tdata = "border: 1px solid;"))
+x
+```
+<br>
+**Frequencies and percentages by Age Group**
 
 ```{r}
-colon.data %>% datatable()
+y<- sjt.xtab(wh$rx.factor, wh$age.factor, show.col.prc = TRUE,
+             CSS = list(css.table = "border: 2px solid;",
+                    css.tdata = "border: 1px solid;"))
+y
 ```
-
-## Observations for the data
-
+<br>
+**Frequencies and percentages by obstruction**
 
 ```{r}
-densityPlot(~age, data = colon.data, bw = bw.SJ, adjust = 1, kernel = dnorm, method = "adaptive")
-
-densityPlot(~time.years, data = colon.data, bw = bw.SJ, adjust = 1, kernel = dnorm, method = "adaptive")
-
-bar_charting <- function(gplt, nm)(gplt + scale_fill_brewer(palette="Blues", name = nm) + geom_bar(aes(y =(..count..)/sum(..count..))) + theme_gray() + scale_y_continuous(labels=scales::percent) + ylab("") + xlab(nm) + guides(x =  guide_axis(angle = 45)))
-
-bar_charting(ggplot(colon.data, aes(x=rx.factor, y="", fill=rx.factor)), "Treatment")
-
-bar_charting(ggplot(colon.data, aes(x=nodes, y="", fill=nodes)), "number of lymph nodes with detectable cancer")
-
-bar_charting(ggplot(colon.data, aes(x=differ.factor, y="", fill=differ.factor)), "differentiation of tumour")
-
-bar_charting(ggplot(colon.data, aes(x=extent.factor, y="", fill=extent.factor)), "Extent of local spread")
-
-bar_charting(ggplot(colon.data, aes(x=surg.factor, y="", fill=surg.factor)), "time from sugery to registration")
-
+z<- sjt.xtab(wh$rx.factor, wh$obstruct.factor, show.col.prc = TRUE,
+             CSS = list(css.table = "border: 2px solid;",
+                    css.tdata = "border: 1px solid;"))
+z
 ```
-
-# Convert or recode variables?
+<br>
+**Frequencies and percentages by Perforance**
 
 ```{r}
-library(dplyr)
-colon.data<- colon.data %>%
-  select(rx, sex, age, obstruct, perfor, adhere, differ, extent, mort_5yr) %>%
-  filter(rx!="Obs")
-
-
-colon.data<-within(colon.data, {
-  sex <- factor(sex, labels=c('female','male'))
-  differ<- factor(differ, labels = c('well', 'moderate', 'poor'))
-  extent <-factor(extent, labels = c('submucosa', 'muscle', 'serosa', 'contiguos structures'))}) 
-  #need more information on obstruct, perfor, adhere
-
-colon.data <- colon.data %>% mutate_if(is.character, as.factor)
-colon.data <- colon.data %>% mutate_if(is.integer, as.numeric)
+per<- sjt.xtab(wh$rx.factor, wh$perfor.factor, show.col.prc = TRUE,
+             CSS = list(css.table = "border: 2px solid;",
+                    css.tdata = "border: 1px solid;"))
+per
 ```
 
-# Check on missing values
+obstruct.factor
+</div>
 
-The data is rather complete with limited NA. There is no need to remove any input.
+&nbsp;
+<hr />
+<p style="text-align: center;">A work by Neha Kalra</a></p>
+<p style="text-align: center;"><span style="color: #808080;"><em>kalran4@mcmaster.ca</em></span></p>
 
-```{r}
-library(Hmisc)
-describe(colon.data)
-```
+&nbsp;
 
-# Logistic regression using mort_5yr
-
-We decided to use mort_5yr as the response variable.
-
-## Split the data into train and test set
-
-```{r}
-library(rsample)
-set.seed(78)
-train_test_split <- initial_split(colon.data, prop=0.7)
-train <- training(train_test_split)
-test <- testing(train_test_split)
-(samp <- dim(train_test_split))
-```
-
-## NULL model
-
-**TODO** interpretation of the intercept
-
-```{r}
-null_model <- glm(mort_5yr ~ 1, family= binomial(logit), data = train)
-summary(null_model)
-```
-
-## Use all the variables to perform a logistic regression
-
-The treatment seems to be the only predictor of the 5 year life status. 
-
-```{r}
-model_training <- glm(mort_5yr ~ rx + sex + age + obstruct + perfor + adhere + differ + extent, family= binomial(logit), data = train)
-summary(model_training)
-```
-
-## Use the extent of tumor as predictor
-
-**TODO** Interpretation of the result
-
-```{r}
-model_training_rx_only <- glm(mort_5yr ~ rx, family= binomial(logit), data = train)
-summary(model_training_rx_only)
-```
-
-## Analysis to see if the treatment make a difference in 
-
-**TODO** explain p nd chi-square values
-
-```{r}
-library(sjPlot)
-tab_xtab(colon.data$mort_5yr, colon.data$rx , show.col.prc=TRUE, show.row.prc=TRUE, var.labels=c("Life status After 5 year", "Treatment"))
-```
-
-## multicollinearity
-
-No multicollinearity is required here, as only one predictor was required.
-
-## Anova 
-
-Here I build the NULL model using the training data set, and I use ANOVA to check if the 2 models deviance are significantly different.
-
-The ANOVA test below indicates that the combined Lev+5FU treatment has a significant impact on the 5 year life status at the 1% level of risk.
-
-```{r}
-anova(model_training_rx_only, null_model, test ="Chisq")
-```
-
-## Predict against test data
-
-```{r}
-test_results <- predict(model_training_rx_only, newdata=test)
-```
-
-## Hit Ratio
-
-**TODO** Not working and I couldn't figure out why...
-
-```{r}
-predicted.prob <- predict( model_training_rx_only, newdata=test, type = "response")
-
-str(predicted.prob)
-```
-
-```{r}
-library(forcats)
-predicted.classes <- as.factor( ifelse( predicted.prob > 0.5, "Alive", "Death" ) )
-predicted.classes <- fct_relevel( (predicted.classes) , c("Alive","Death" ) )
-tab_xtab(test$mort_5yr, predicted.classes, var.labels = c("Actual Life status", "Predicted life status"), show.row.prc = TRUE)
-```
-
-### how are the residuals
-
-## Conclusion on the logistic regression test
-
-
-# Conclusion
-
-**TODO_test3**
-
-**TEST_sdharma108**
