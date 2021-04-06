@@ -166,6 +166,101 @@ bar_charting(ggplot(colon.data, aes(x=surg.factor, y="", fill=surg.factor)), "ti
 
 ```
 
+# Missing Values and Treatment
+
+In this section, the total count of missing values in each column is identified. Since the total count of NA is less than 5%, we will not treat the missing values. *Note - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.*
+
+```{r}
+MD <- colSums(is.na(colon.data))
+library(kableExtra)
+MD %>%
+  kable(caption = "Table 3: Total count of NA for each variable") %>%
+   kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T) 
+```
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Few observations looking at the data in graphs above:
+
+* Below are the columns identified with NA:
+   * Obstruct - 21
+   * nodes - 18
+   * differ - 23
+   * surg - 17
+   * loccomp -20
+   * mort_5yr - 14
+* Since the total count of NA is less than 5%, we will not treat the missing values.
+  
+</div>
+
+*** 
+
+# Exploring the distribution of the data
+
+Below tree diagram shows:
+
+* Total number of observations- 929
+* 33% of the observations are for patients who were given levamisole (Lev).
+* 33% were given levamisole + fluorouracil (Lev +5FU)
+* 34% constitutes the controls group.
+* there is almost equal distribution of male and females in both the groups (Lev and Lev+5FU)
+* Majority of the patients belong to the age group of 60+ followed by 40-59 and <40 years.
+
+```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2:add"}
+library(vtree)
+vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", 
+  cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
+```
+
+**Frequencies and percentages by Sex**
+
+Below table shows the distribution of sexes in the different treatment therapies
+```{r}
+library(sjPlot)
+x<- sjt.xtab(colon.data$rx.factor, colon.data$sex.factor, show.col.prc = TRUE,
+             CSS = list(css.table = "border: 2px solid;",
+                    css.tdata = "border: 1px solid;"))
+x
+```
+
+<br>
+
+**Frequencies and percentages by Age Group**
+
+```{r}
+y<- sjt.xtab(colon.data$rx.factor, colon.data$age.factor, show.col.prc = TRUE,
+             CSS = list(css.table = "border: 2px solid;",
+                    css.tdata = "border: 1px solid;"))
+y
+```
+<br>
+
+**Frequencies and percentages by obstruction**
+
+```{r}
+z<- sjt.xtab(colon.data$rx.factor, colon.data$obstruct.factor, show.col.prc = TRUE,
+             CSS = list(css.table = "border: 2px solid;",
+                    css.tdata = "border: 1px solid;"))
+z
+```
+<br>
+
+**Frequencies and percentages by Perforance**
+
+```{r}
+per<- sjt.xtab(colon.data$rx.factor, colon.data$perfor.factor, show.col.prc = TRUE,
+             CSS = list(css.table = "border: 2px solid;",
+                    css.tdata = "border: 1px solid;"))
+per
+```
+
+obstruct.factor
+</div>
+
+
 # Convert or recode variables?
 
 ```{r}
@@ -279,7 +374,7 @@ str(predicted.prob)
 library(forcats)
 predicted.classes <- as.factor( ifelse( predicted.prob > 0.5, "Alive", "Death" ) )
 predicted.classes <- fct_relevel( (predicted.classes) , c("Alive","Death" ) )
-tab_xtab(test$mort_5yr, predicted.classes, var.labels = c("Actual Life status", "Predicted life status"), show.row.prc = TRUE)
+# tab_xtab(test$mort_5yr, predicted.classes, var.labels = c("Actual Life status", "Predicted life status"), show.row.prc = TRUE)
 ```
 
 ### how are the residuals
