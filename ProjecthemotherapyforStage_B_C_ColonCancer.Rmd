@@ -19,7 +19,7 @@ output:
 knitr::opts_chunk$set( echo=TRUE, warning=FALSE, message=FALSE, error=FALSE, comment = NA )
 options(max.print = 10000)
 options(scipen = 999)
-pacman::p_load(DT, kableExtra, magrittr, ggplot2, wrapr, generics, car)
+pacman::p_load(DT, kableExtra, magrittr, ggplot2, wrapr, generics, car, psych,xray , ggplot2, texreg, dplyr, wrapr,  sjPlot, knitr, DescTools, Hmisc, corrplot, ggcorrplot, qgraph, corrr, tidyverse,sjmisc, sjlabelled, sjstats, sjPlot,  forcats, kableExtra, captioner, unikn, captioner, car, hrbrthemes, relaimpo, plotflow, tidyverse, dials, tidymodels, ggeffects, haven, glmmTMB, broom, magick, BiocManager )
 ```   
 
 ```{r "colorize", echo=FALSE, results="hide"}
@@ -131,7 +131,6 @@ df = as.data.frame(matrix(
   ncol = 2,              # number of rows 
   byrow = TRUE))
 colnames(df) <- c("Variable", "Description")
-
 df %>%
   kable(caption = "World Population Health: All Countries") %>%
   kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T) 
@@ -142,9 +141,7 @@ df %>%
 library(dplyr)
 colon.data <- colon.data %>% mutate_if(is.character, as.factor)
 colon.data <- colon.data %>% mutate_if(is.integer, as.numeric)
-colon.data <- colon.data %>%
-  select(rx, sex, age, obstruct, perfor, adhere, differ, extent, mort_5yr, rx.factor, sex.factor, age.factor, obstruct.factor, perfor.factor, adhere.factor, differ.factor, extent.factor, mort_5yr.num) %>%
-  filter(rx.factor!="Obs") 
+colon.data <- colon.data %>% dplyr::select(rx, sex, age, obstruct, perfor, adhere, differ, extent, mort_5yr, rx.factor, sex.factor, age.factor, obstruct.factor, perfor.factor, adhere.factor, differ.factor, extent.factor, mort_5yr.num) %>% filter(rx.factor!="Obs") 
 library(Hmisc)
 describe(colon.data)
 ```
@@ -168,13 +165,10 @@ colon.data %>% datatable()
 ## Observations for the data  
 ```{r}
 densityPlot(~age, data = colon.data, bw = bw.SJ, adjust = 1, kernel = dnorm, method = "adaptive")
-densityPlot(~time.years, data = colon.data, bw = bw.SJ, adjust = 1, kernel = dnorm, method = "adaptive")
 bar_charting <- function(gplt, nm)(gplt + scale_fill_brewer(palette="Blues", name = nm) + geom_bar(aes(y =(..count..)/sum(..count..))) + theme_gray() + scale_y_continuous(labels=scales::percent) + ylab("") + xlab(nm) + guides(x =  guide_axis(angle = 45)))
 bar_charting(ggplot(colon.data, aes(x=rx.factor, y="", fill=rx.factor)), "Treatment")
-bar_charting(ggplot(colon.data, aes(x=nodes, y="", fill=nodes)), "number of lymph nodes with detectable cancer")
 bar_charting(ggplot(colon.data, aes(x=differ.factor, y="", fill=differ.factor)), "differentiation of tumour")
 bar_charting(ggplot(colon.data, aes(x=extent.factor, y="", fill=extent.factor)), "Extent of local spread")
-bar_charting(ggplot(colon.data, aes(x=surg.factor, y="", fill=surg.factor)), "time from sugery to registration")
 ```
 
 <style>
@@ -319,7 +313,6 @@ test_results <- predict(model_training_rx_only, newdata=test)
 **TODO** Not working and I couldn't figure out why...
 ```{r}
 predicted.prob <- predict( model_training_rx_only, newdata=test, type = "response")
-
 str(predicted.prob)
 ```
 
@@ -366,78 +359,12 @@ library(Rcmdr)
 library(car)
 library(RcmdrMisc)
 ```
-```{r  "setup", include=FALSE}  
-pacman::p_load(psych,xray , ggplot2, texreg, dplyr,wrapr,  DT,  sjPlot, knitr, DescTools, Hmisc, corrplot,ggcorrplot, qgraph, corrr, tidyverse,sjmisc, sjlabelled, sjstats, sjPlot,  forcats,kableExtra, captioner, unikn,   kableExtra, captioner, car,MASS, hrbrthemes, relaimpo,plotflow, tidyverse, dials, tidymodels, ggeffects, haven,glmmTMB, broom, magick,BiocManager  )
-
-```
-```{r echo=FALSE}
-# include this code chunk as-is to enable 3D graphs
-library(rgl)
-knitr::knit_hooks$set(webgl = hook_webgl)
-```
-```{r echo=FALSE}
-install.packages('BiocManager')
-```
-
-# Reading the Data 
-```{r echo=TRUE, message=FALSE, warning=FALSE, fig.width=5, fig.height=5, comment=NA}
-colon.data <- 
-  read.csv("C:/Users/Sandeep Delar/Desktop/EHEALTH 705Statistics for eHealth -ASSIGNMENT/Group Proect 705/colon_s.csv",
-   header=TRUE, stringsAsFactors=TRUE, sep=",", na.strings="NA", dec=".", 
-  strip.white=TRUE)
-```
-```{r}
-df = as.data.frame(matrix( 
-  c('id','id',
-    'rx','Treatment - Obs(ervation), Lev(amisole), Lev(amisole)+5-FU',
-    'sex','sex of the patient (1=Male)',
-    'age','age in years',
-    'obstruct','obstruction of colon by tumour',
-    'perfor','perforation of colon',
-    'adhere','adherence to nearby organs',
-    'nodes','number of lymph nodes with detectable cancer',
-    'status','censoring status',
-    'differ','differentiation of tumour (1=well, 2=moderate, 3=poor)',
-    'extent','Extent of local spread (1=submucosa, 2=muscle, 3=serosa,
-4=contiguous structures)',
-    'surg','time from surgery to registration (0=short, 1=long)',
-    'node4','more than 4 positive lymph nodes',
-    'time','days until death',
-    'loccomp','????',
-    'time.years','years until death',
-    'mort_5yr','5 years life status',
-    'age.10','Age divided by 10..',
-    'hospital','Hospital'), # the data elements 
-  ncol = 2,              # number of rows 
-  byrow = TRUE))
-colnames(df) <- c("Variable", "Description")
-
-df %>%
-  kable(caption = "World Population Health: All Countries") %>%
-  kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T) 
-```
-
-
-
-
-# Removing Missing Values 
-
-```{r}
- colon.data= na.omit(colon.data)
-```
-
-******
-
-# A regression of ‘mort_5yr’ on sex, age, , obstruct, , perfor,adhere ,nodes , status, differ, . . Build that model based on the full sample. Reduce the model appropriately. Explain the model.
 
 # Multiple regression using all predictor variables.
 
 
-__$H_o$__ : coefficient  = 0, a risk of a Type 1 error, = $\alpha = 0.05$
-
-
+__$H_o$__ : coefficient  = 0, a risk of a Type 1 error, = $\alpha = 0.05$  
 __$H_a$__ : coefficient ≠ 0, a risk of a Type 1 error, = $\alpha = 0.05$
-
 
 ```{r ,  fig.width=5, fig.height=5, comment=NA}
 RegModel.1 <- 
@@ -514,7 +441,6 @@ The second block gives the coefficients when 1 predictor is entered, 2 are enter
 library(relaimpo) 
 imp.lm<-calc.relimp(RegModel.1, type=c("lmg"), rela = TRUE)
 imp.lm
-
 ```
 
 
@@ -553,7 +479,6 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
   theme(axis.title.y=element_text(
                                  face="bold", color="black",size=14))+
   labs(y= "Relative impacts of Variables", x= "Variables")
-
 ```
 
 
@@ -563,8 +488,8 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
 # Stepwise Regression
 ```{r}
 library(MASS)  
-step <- stepAIC(RegModel.1, direction="both")
-step
+#step <- stepAIC(RegModel.1, direction="both", na.omit=TRUE)
+#step
 ```
 
 
@@ -598,21 +523,21 @@ __$H_o$__: the coefficients of the variables in the the best model are equal to 
 __$H_a$__: the coefficients of the variables in the the best model are NOT equal to zero, statistically, at a risk of a Type 1 error, = $\alpha = 0.05$
 
 ```{r}
-tab_model(step,
-  title = "Regression of mort_5yr: 5 years life status on 'best' stepwise model",
-  show.stat = TRUE,
-  digits = 3,
-  string.stat = "t-value",
-  string.p = "p (sig)",
-  show.fstat = TRUE,
-  show.dev = TRUE,
-  show.aic = TRUE,
-  CSS = list(
-    css.depvarhead = 'color: darkgreen;',
-    css.centeralign = 'text-align: left;',
-    css.firsttablecol = 'font-weight: bold;',
-    css.summary = 'color: blue;'
-  ))
+#tab_model(step,
+ # title = "Regression of mort_5yr: 5 years life status on 'best' stepwise model",
+#  show.stat = TRUE,
+#  digits = 3,
+#  string.stat = "t-value",
+#  string.p = "p (sig)",
+#  show.fstat = TRUE,
+#  show.dev = TRUE,
+#  show.aic = TRUE,
+#  CSS = list(
+#    css.depvarhead = 'color: darkgreen;',
+#    css.centeralign = 'text-align: left;',
+ #   css.firsttablecol = 'font-weight: bold;',
+ #   css.summary = 'color: blue;'
+#  ))
 ```
 
 # Plotting the model coefficients (the best model with select 4 variables and the original model with all 8 predictor variables)
@@ -727,7 +652,6 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
   theme(axis.title.y=element_text(
                                  face="bold", color="black",size=14))+
   labs(y= "Relative impacts of Variables", x= "Variables")
-
 ```
 
 
@@ -835,8 +759,8 @@ The stepwise regression was used to find the "best training model" with subset o
 
 ```{r}
 library(MASS)  
-step <- stepAIC(model.tr, direction="both", trace = TRUE)
-step
+#step <- stepAIC(model.tr, direction="both", trace = TRUE)
+#step
 ```
 In case of current stepwise regression for LifeExpectancy using the Training Sample, the model with variables 'BirthRate', 'GDP' , 'Health' , 'HIV' , 'Rural' has been chosen as the best training model. 
 The “plotreg()” function is used below to present the coefficient estimates based on the training sample. The graphs show that, while the intercept is not significantly different from zero, all the five predictor variables significantly help to improve prediction of LifeExpectancy. 
@@ -888,7 +812,6 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
   theme(axis.title.y=element_text(
                                  face="bold", color="black",size=14))+
   labs(y= "Relative impacts of Variables", x= "Variables")
-
 ```
 
 
@@ -1012,7 +935,6 @@ Ho: correlation = 0 i.e., actual and predicted values of the dependent variable,
 
 Ha: correlation ≠ 0 i.e., actual and predicted values of the dependent variable, Life Expectancy, are __statistically correlated__ , a risk of a Type 1 error, = α=0.05 are correlated a risk of a Type 1 error, = α=0.05
 
-
 ___Testing Hypothesis___
 
 
@@ -1035,8 +957,6 @@ gvmodel <- gvlma(model.te)
 summary(gvmodel)
 ```
 
-
-
 ___Interpretations___
 
 The summary above provides the following information: 
@@ -1055,19 +975,6 @@ The regression model is  very well able to predict the dependent variable, Life 
 
 Moreover, The ‘gvlma’ test provides a lot of output for the regression and then states whether 5 assumptions are acceptable or not. In this case, all assumptions pass the tests except for the link function which indicates that we should use an alternative form of the generalized linear model (e.g. logistic or binomial regression).
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 ********************************************************************
 *************************************************************
 <hr />
@@ -1076,7 +983,4 @@ Moreover, The ‘gvlma’ test provides a lot of output for the regression and t
 <p style="text-align: center;">McMaster University</p>
 <p style="text-align: center;"><span style="color: #808080;"><em>kumars53@mcmaster.ca</em></span></p>
 &nbsp; 
-
-
-
 
