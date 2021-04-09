@@ -1035,6 +1035,53 @@ gvmodel <- gvlma(model.te)
 summary(gvmodel)
 ```
 
+#### Relaimpo
+```{r,  fig.width=5, fig.height=5}
+RegModel.2 <- lm(mort_5yr.num ~ rx.factor + age.factor + differ.factor + 
+       extent.factor,
+     data=colon.data)
+```
+#rankings using relaimpo
+```{r,  fig.width=5, fig.height=5}
+library(relaimpo) # rel importances of predictors
+imp.lm2<-calc.relimp(RegModel.2, rela = TRUE)
+imp.lm2
+```
+#make it look better
+```{r,  fig.width=5, fig.height=5}
+rel.lmg<- calc.relimp(RegModel.2, type="lmg", rela=TRUE)
+lm<- data.frame(rel.lmg$lmg, rel.lmg$lmg.rank)
+lm<-lm[order(rel.lmg$lmg.rank),]
+lm <-data.frame(Features=rownames(lm), lm, row.names=NULL)
+colnames(lm) <- c("Variables", "Importance", "Rankings")
+is.num <- sapply(lm, is.numeric)
+lm[is.num] <- lapply( lm[is.num], round, 3)
+lmLoading/Attaching and Listing of Packages
+```
+
+
+
+### Survival null on all cases
+library(dplyr)
+colon.data<-read.csv("C:/Users/ibrah/OneDrive/EHealth/Stats/Project/colon_s.csv") %>%
+  filter(rx!="Obs")
+colon.survival <-
+  survfit(Surv(time, status) ~ 1,  data = colon.data)
+summary(colon.survival)
+
+plot(colon.survival,  xlab="Days till death", ylab="Survival probability")
+title("Survival curves for colon data, Null model")
+
+
+## Survival model on RX
+colon.survival <- survfit(Surv(time,status) ~ rx, data = colon.data)
+summary(colon.survival)
+
+plot(colon.survival, lty = c(2,1), xlab="Days till death", ylab="Survival Probability")
+legend(13, .9, c("Probability of survival: Lev+5FU"), lty = 2 ) 
+legend(2, .2, c("Probability of survival: Lev"), lty = 1) 
+title("Survival curves for migraine data")
+
 
 
 ___Interpretations___
