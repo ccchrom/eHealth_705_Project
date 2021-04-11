@@ -1002,37 +1002,66 @@ lm[is.num] <- lapply( lm[is.num], round, 3)
 lmLoading/Attaching and Listing of Packages
 ```
 
+# Survival analysis
 
 
-# Survival null on all cases
-```{r,  fig.width=5, fig.height=5}
+```{r }
 library(dplyr)
-colon.data<-read.csv("C:/Users/ibrah/OneDrive/EHealth/Stats/Project/colon_s.csv") %>%
+colon.data<-read.csv("colon.csv") %>%
   filter(rx!="Obs")
-
-colon.survival <-
-  survfit(Surv(time, status) ~ 1,  data = colon.data)
-summary(colon.survival)
 ```
-## plot
-```{r,  fig.width=5, fig.height=5}
-plot(colon.survival,  xlab="Days till death", ylab="Survival probability")
+
+Table for KM analysis on all cases for the null model.
+
+```{r }
+surv.colon <- survfit(Surv(time, status) ~ 1,  data = colon.data)
+summary(surv.colon)
+```
+Corresponding graph. 
+
+```{r }
+plot(surv.colon,  xlab="Days till death", ylab="Survival Probability")
 title("Survival curves for colon data, Null model")
 ```
 
-# Survival model on RX
 
-```{r,  fig.width=5, fig.height=5}
-colon.survival <- survfit(Surv(time,status) ~ rx, data = colon.data)
-summary(colon.survival)
+Since RX treatment has not been entered into the model above, the table and graph above convey that the probabilities of survival from colon cancer at each point in time (days). the lower the days, the higher probability of survival. at 23 days time, we had 614 people at risk with a 98% chance of survival. However as we go up in days, the chances of survival go down. We see this illistrated in both the graph and table. For example, at 797 days time, we had 469 peoples chances of survival at below 76%.
+
+## Survival model for the rx treatment on all cases
+
+```{r }
+surv.colon <- survfit(Surv(time,status) ~ rx, conf.int=TRUE, data = colon.data)
+summary(surv.colon)
 ```
-## plot
-```{r,  fig.width=5, fig.height=5}
-plot(colon.survival, lty = c(2,1), xlab="Days till death", ylab="Survival Probability")
-legend(13, .9, c("Probability of survival: Lev+5FU"), lty = 2 ) 
-legend(2, .2, c("Probability of survival: Lev"), lty = 1) 
-title("Survival curves for migraine data")
+```{r }
+plot(surv.colon, lty = c(2,1), xlab="days till death", ylab="Survival Probability")
+legend(13, .4, c("Probability of survival: Lev treatment"), lty = 2 ) 
+legend(13,.9, c("Probability of survival: Lev+5FU treatment"), lty = 1) 
+title("Survival curves for colon cancer data")
 ```
+
+
+Above we see the survival analysis divided into two groups. Group one being the Lev treatment and group 2 being the Lev+5FU treatment. Some observations include:
+
+For the Lev treatment group, in 93 days time, 308 people had survived and were at risk with a 99% chance of survival. 
+
+For the Lev+5FU treatment group, in 79 days time, 300 people had survived and were at risk with a 98% chance of survival.
+
+## Test statistically if the two treatments are the same or different.
+
+Let's define our hypotheses
+
+Ho: There's no difference between the Lev treatment and Lev+5FU treatment.
+
+Ha: There is a difference 
+
+Alpha: .05
+
+```{r }
+survdiff(Surv(time, status)~ rx, data=colon.data, rho=0)
+```
+
+Above we see a chi square value of 8.2 and a p value of .004. We do reject the null hypothesis as the p-value is .004 and well below our threshold of .05. This means there is a significant difference between the Lev treatment and Lev+5FU colon cancer patients.
 
 
 =======
