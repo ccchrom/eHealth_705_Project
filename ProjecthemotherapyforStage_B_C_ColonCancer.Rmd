@@ -32,79 +32,37 @@ colorize <- function(x, color) {
   } else x
 }
 ```  
-# Instructions  
-Your analysis should follow the steps taken in this course:
-1. Read the material provided. Sometimes very little is mentioned about the data. In all cases, I’ve provided everything I have about the dataset that you could use. You may find more information through online searches. (Good datasets are very difficult to obtain. )
-2. Set up your R Markdown file and read the dataset. This may be done in RStudio or in R Commander. Feel free to use either R-code directly in RStudio (R Markdown) or in R Commander (producing an R Markdown document).
-3. **Exploratory Data Analysis**. Produce basic tables and graphs so that you understand the data and can explain the basics in your report. You may have to google the literature to get background on some data and medical terms.
-4. You may have to convert some variables to factors and will likely need to recode to provide value labels for factor variables.
-5. Check on missing values and determine the best way of handling missing values.
-6. There should be one variable that qualifies as a response or dependent variable. Your focus for much of your work will be to investigate how to explain and/or predict values of the response variable by using predictor variables.
-7. Your work in point 6 will likely include some form of regression and, perhaps ANOVA and correlation. The regression may be linear regression or logistic regression. That will depend on the nature of the response variable. Sometimes the analysis in the journal article was conducted using survival analysis. While that topic is covered in this course, you may choose to use survival analysis or logistic regression.
-8. Explaining your work and the findings is extremely important. Naturally, this is a statistics course and you may use statistical terminology and notation in your reports. However, you must show that you understand the material and can explain it in plain language to others who have limited statistical backgrounds. Simply producing a mass of statistical output with no or very little explanation will not attract a very high mark.
-
-# Analysis used in the study  
-Levamisole use in combination with flourouracil in the study is based on the hope that it would add to the marginal activity of flourouracil. The aim of the study is to confirm that adjuvant therapy with the combination of levamisole and fluorouracil significantly reduced the cancer-recurrence rate as compared with the rate when no adjuvant therapy was given, where as the use if levamisole alone produced a borderline advantage. Survival was the primary end point of the study, the time to recurrence was also determined.
-1296 patients with resected colon cancer that either was locally invasive (Stage B2) or had regional nodal involvement (Stage C) were randomly assigned to observation or to treatment for one year with levamisole combined with flourocil.
-Analysis conducted by the case study
-1. Survival curves by the Kaplan- Merier Method [The Kaplan–Meier estimator also known as the product limit estimator, is a non-parametric statistic used to estimate the survival function from lifetime data. In medical research, it is often used to measure the fraction of patients living for a certain amount of time after treatment.]
-2. The Log Rank Test: It was used to determine the ratios of relapse and survival rates and to perform all multivariate analysis. Long rank test description:
-a. We are often interested in assessing whether there are differences in survival (or cumulative incidence of event) among different groups of participants. For example, in a clinical trial with a survival outcome, we might be interested in comparing survival between participants receiving a new drug as compared to a placebo (or standard therapy).
-b. The log rank test is a popular test to test the null hypothesis of no difference in survival between two or more independent groups.
-c. a test of whether the survival curves are identical (overlapping) or not. 
-d. Survival curves are estimated for each group, considered separately, using the Kaplan-Meier method and compared statistically using the log rank test.
-• The log rank test is a non-parametric test and makes no assumptions about the survival distributions. In essence, the log rank test compares the observed number of events in each group to what would be expected if the null hypothesis were true (i.e., if the survival curves were identical).
-• H0: The two survival curves are identical (or S1t = S2t) versus H1: The two survival curves are not identical (or S1t ≠ S2t, at any time t) (α=0.05).
-• The log rank statistic is approximately distributed as a chi-square test statistic. There are several forms of the test statistic, and they vary in terms of how they are computed.
-3. Cox proportional-hazards model was used to determine the ratios of relapse and survival rates.
-• The Cox proportional-hazards model (Cox, 1972) is essentially a regression model commonly used statistical in medical research for investigating the association between the survival time of patients and one or more predictor variables.
-• Kaplan-Meier curves and logrank tests - are examples of univariate analysis. They describe the survival according to one factor under investigation, but ignore the impact of any others.
-• Additionally, Kaplan-Meier curves and logrank tests are useful only when the predictor variable is categorical (e.g.: treatment A vs treatment B; males vs females). They don’t work easily for quantitative predictors such as gene expression, weight, or age.
-• Cox proportional hazards regression analysis, which works for both quantitative predictor variables and for categorical variables. Furthermore, the Cox regression model extends survival analysis methods to assess simultaneously the effect of several risk factors on survival time.
-4. Backward regression was used to find the significant prognostic factors, variables were progressively eliminated on the basis of the maximal partial-liklihood estimate (MLE) statistics.
-• All P values reported for this study are two sided.
-• Stepwise regression is the step-by-step iterative construction of a regression model that involves the selection of independent variables to be used in a final model. It involves adding or removing potential explanatory variables in succession and testing for statistical significance after each iteration.
-• The underlying goal of stepwise regression is, through a series of tests (e.g. F-tests, t-tests) to find a set of independent variables that significantly influence the dependent variable. 
-• Stepwise regression can be achieved either by trying out one independent variable at a time and including it in the regression model if it is statistically significant or by including all potential independent variables in the model and eliminating those that are not statistically significant.
-• An example of a stepwise regression using the backward elimination method would be an attempt to understand energy usage at a factory using variables such as equipment run time, equipment age, staff size, temperatures outside, and time of year. The model includes all of the variables—then each is removed, one at a time, to determine which is least statistically significant. In the end, the model might show that time of year and temperatures are most significant, possibly suggesting the peak energy consumption at the factory is when air conditioner usage is at its highest. 
-5. Exploratory subset Analysis
-Levamisole-fluorouracil treatment appeared to have the greatest advantage among
-• the male patients (in both survival and recurrence),
-• older patients (recurrence)
-• Patients with tumours that were well differentiated to moderately well differentiated (survival and recurrence)
-• patients in whom more than four nodes were involved(survival)
-• patients treated 21 to 35 days after surgery (recurrence)
-• These results show striking contradictions to those of subset analyses in which levamisole plus fluorouracil was found to be most effective in reducing the risk of recurrence among female patients and younger patients.
 
 # Objectives  
-We wish to confirm using our own process that adjuvant therapy with the combination of levamisole and fluorouracil significantly reduce death within 5 years compared with no adjuvant therapy – using only levamisole.  We chose to only include these two groups because we are only comparing adjuvant therapy against normal therapy.  Levimasole is already recognized worldwide as an antiparasitic drug that changes ones immune response, similar to methotrexate – so we are considering it a control.  We aim to achieve this by:
-1.  To assess the distributions of variables within the two treatment categories, including: (distribution plots/tables between groups)
-    a.	Sex – Male or female patients
-    b.	Age – Finding the average (or median) age that has most impact on 5 year survival
-    c.	Obstructive tumours versus non-obstructive
-    d.	If the colon was perforated by the tumor or not
-    e.	If tumours were adhered to nearby organs
-    f.	Differentiation of tumors – rated well, moderate, or poor
-    g.	The extent of local spread of the tumor which could be:
-        i.	Submucosal
-        ii.	Within muscle
-        iii.	Within the serosa – the outermost layer of organs
-        iv.	Contiguous structures – meaning nearby organs
-2.  Investigate if any of the predictor variables have an impact on each other. (correlation)(VIF)
-3.  Using stepwise regression to obtain a model that best describes the impact of specific variables on five year life status
-4.	Using a logistic regression model to investigate the association between five year life status and one or more categorical predictor variables within each treatment group (regression models for both groups) (predict) (train+test) (residuals)
-5.	Assessing whether there are differences in survival (or cumulative incidence of event) among different groups of participants
-    a.  This will be done by testing the null hypothesis of no difference in survival between two or more independent groups. 
-        •	H0: The two survival rates are identical, (α=0.05).    
-        •	Ha: The two survival rates are not identical.  (chi-square test)
-6.	Analyze data within the subset of Levamisole-fluorouracil to find which variables have the greatest impact on 5 year mortality.  (Reliampo)
+We wish to confirm using our own process that adjuvant therapy with the combination of levamisole and fluorouracil significantly reduce death within 5 years compared with no adjuvant therapy – using only levamisole.  We chose to only include these two groups because we are only comparing adjuvant therapy against normal therapy.  Levimasole is already recognized worldwide as an antiparasitic drug that changes ones immune response, similar to methotrexate – so we are considering it a control.  We aim to achieve this by:<br>
+
+1.  To assess the distributions of variables within the two treatment categories, including: (distribution plots/tables between groups)  
+    a.	Sex – Male or female patients  
+    b.	Age – Finding the average (or median) age that has most impact on 5 year survival  
+    c.	Obstructive tumours versus non-obstructive  
+    d.	If the colon was perforated by the tumor or not  
+    e.	If tumors were adhered to nearby organs  
+    f.	Differentiation of tumors – rated well, moderate, or poor  
+    g.	The extent of local spread of the tumor which could be:  
+        i.	Submucosal  
+        ii.	Within muscle  
+        iii.	Within the serosa – the outermost layer of organs  
+        iv.	Contiguous structures – meaning nearby organs  
+2.  Investigate if any of the predictor variables have an impact on each other. (correlation)(VIF)  
+3.  Using stepwise regression to obtain a model that best describes the impact of specific variables on five year life status  
+4.	Using a logistic regression model to investigate the association between five year life status and one or more categorical predictor variables within each treatment group (regression models for both groups) (predict) (train+test) (residuals)  
+5.	Assessing whether there are differences in survival (or cumulative incidence of event) among different groups of participants  
+    a.  This will be done by testing the null hypothesis of no difference in survival between two or more independent groups.  
+        i.	H0: The two survival rates are identical, (α=0.05).    
+        ii.	Ha: The two survival rates are not identical.  (chi-square test)  
+6.	Analyze data within the subset of Levamisole-fluorouracil to find which variables have the greatest impact on 5 year mortality.  (Reliampo)  
 
 # Read the file  
 ```{r}
 colon.data <- read.csv('colon_s.csv')
 ```
 
-# Cleaning and Recoding the Data  
+# Investigating, Cleaning and Recoding the Data  
 ## Column descriptions  
 ```{r}
 df = as.data.frame(matrix( 
@@ -162,7 +120,24 @@ MD %>%
 colon.data %>% datatable()
 ```
 
-## Observations for the data  
+## Observations for the data
+
+Below tree diagram shows:
+
+* Total number of observations- 929
+* 33% of the observations are for patients who were given levamisole (Lev).
+* 33% were given levamisole + fluorouracil (Lev +5FU)
+* 34% constitutes the controls group.
+* there is almost equal distribution of male and females in both the groups (Lev and Lev+5FU)
+* Majority of the patients belong to the age group of 60+ followed by 40-59 and <40 years.
+
+```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2:add"}
+library(vtree)
+vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", 
+  cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
+```
+
+
 ```{r}
 densityPlot(~age, data = colon.data, bw = bw.SJ, adjust = 1, kernel = dnorm, method = "adaptive")
 bar_charting <- function(gplt, nm)(gplt + scale_fill_brewer(palette="Blues", name = nm) + geom_bar(aes(y =(..count..)/sum(..count..))) + theme_gray() + scale_y_continuous(labels=scales::percent) + ylab("") + xlab(nm) + guides(x =  guide_axis(angle = 45)))
@@ -189,22 +164,6 @@ Few observations looking at the data in graphs above:
 </div>
 
 *** 
-
-# Exploring the distribution of the data  
-Below tree diagram shows:
-
-* Total number of observations- 929
-* 33% of the observations are for patients who were given levamisole (Lev).
-* 33% were given levamisole + fluorouracil (Lev +5FU)
-* 34% constitutes the controls group.
-* there is almost equal distribution of male and females in both the groups (Lev and Lev+5FU)
-* Majority of the patients belong to the age group of 60+ followed by 40-59 and <40 years.
-
-```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2:add"}
-library(vtree)
-vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", 
-  cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
-```
 
 **Frequencies and percentages by Sex**  
 Below table shows the distribution of sexes in the different treatment therapies
@@ -247,9 +206,10 @@ obstruct.factor
 </div>
 
 <New EDA additon>
-  
-## Scrutizing the Data
 
+
+
+# Scrutinizing the Cleaned Data
 This is a preliminary step to study and analyze the data. In this section:
 
  * Data is viewed using "distributions()" function from the 'xray' package and the"Datamaid" package. *Note*: Datamaid Report is produced as a seperate report and is provided as part of this assignment submission package.
@@ -389,7 +349,7 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 
 </div>
 
-## Impacts of  the treaments on the Prognostic Markers of Colon Cancer
+## Impacts of the treaments on the Prognostic Markers of Colon Cancer
 
 Below graphs are plotted to understand the impacts of treatment on the prognostic markers like 
 
@@ -400,19 +360,14 @@ p01 <- ggplot(data = colon.data)+ geom_bar (aes(x=perfor.factor, fill=(rx.factor
        
 p02 <- ggplot(data = colon.data)+ geom_bar (aes(x=obstruct.factor, fill=(rx.factor)))+
        ggtitle(label = "Obstruction of colon by tumour")
-
 p03 <- ggplot(data = colon.data)+ geom_bar (aes(x=adhere.factor, fill=(rx.factor)))+
        ggtitle(label = "Adherence to nearby organs")
-
 p04 <- ggplot(data = colon.data)+ geom_bar (aes(x=differ.factor, fill=(rx.factor)))+
        ggtitle(label = "Differentiation of tumour")
-
 p05 <- ggplot(data = colon.data)+ geom_bar (aes(x=extent.factor, fill=(rx.factor)))+
        ggtitle(label = "Extent of local spread")
-
 p06 <- ggplot(data = colon.data)+ geom_bar (aes(x=mort_5yr, fill=(rx.factor)))+
        ggtitle(label = "5 years life status")
-
 pacman::p_load("Rmisc")
 multiplot(p01,p02,p03,p04, cols=1)
 multiplot(p05, p06, cols =1)
@@ -432,7 +387,10 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 
 <New EDA addition Ends>
   
-# Logistic regression using mort_5yr  
+
+
+# Logistic Regression using Five Year Mortality
+
 We decided to use mort_5yr as the response variable.
 
 ## Split the data into train and test set  
@@ -512,41 +470,14 @@ predicted.classes <- fct_relevel( (predicted.classes) , c("Alive","Death" ) )
 ## Conclusion on the logistic regression test. 
 
 
+
 # Summative Conclusion. 
 
 **TODO_test3**
 
 **TEST_sdharma108**
 
----  
-title: 'Regression Analysis mort_5yr.num: 5 years life status'
-author:
-  name:
-  affiliation: eH705 | eHealth MSc Program, McMaster University
-date: "`r format(Sys.time(), '%d %B %Y')`"
-output:
-  html_document:
-    color: red
-    number_sections: yes
-    code_folding: hide
-    toc: yes
-    toc_float:
-      toc_collapsed: yes
-    theme: readable
-    font_family: Tahoma, Tahoma, seriff
-  pdf_document:
-    toc: yes
----
-```{r echo=FALSE, message=FALSE}
-# include this code chunk as-is to set options
-knitr::opts_chunk$set(comment=NA, prompt=TRUE, echo = TRUE, message = FALSE, warning = FALSE, error = FALSE)
-library(Rcmdr)
-library(car)
-library(RcmdrMisc)
-```
-
 # Multiple regression using all predictor variables.
-
 
 __$H_o$__ : coefficient  = 0, a risk of a Type 1 error, = $\alpha = 0.05$  
 __$H_a$__ : coefficient ≠ 0, a risk of a Type 1 error, = $\alpha = 0.05$
@@ -1184,7 +1115,7 @@ lm <-data.frame(Features=rownames(lm), lm, row.names=NULL)
 colnames(lm) <- c("Variables", "Importance", "Rankings")
 is.num <- sapply(lm, is.numeric)
 lm[is.num] <- lapply( lm[is.num], round, 3)
-lmLoading/Attaching and Listing of Packages
+#lmLoading/Attaching and Listing of Packages
 ```
 
 # Survival analysis
@@ -1192,8 +1123,7 @@ lmLoading/Attaching and Listing of Packages
 
 ```{r }
 library(dplyr)
-colon.data<-read.csv("colon.csv") %>%
-  filter(rx!="Obs")
+colon.data<-read.csv('colon_s.csv') %>% filter(rx!="Obs")
 ```
 
 Table for KM analysis on all cases for the null model.
@@ -1248,16 +1178,4 @@ survdiff(Surv(time, status)~ rx, data=colon.data, rho=0)
 
 Above we see a chi square value of 8.2 and a p value of .004. We do reject the null hypothesis as the p-value is .004 and well below our threshold of .05. This means there is a significant difference between the Lev treatment and Lev+5FU colon cancer patients.
 
-
-=======
-
-
-********************************************************************
-*************************************************************
-<hr />
-<p style="text-align: center;">Work done by Sandeep Kumar</p>
-<p style="text-align: center;">MSc eHealth Program</p>
-<p style="text-align: center;">McMaster University</p>
-<p style="text-align: center;"><span style="color: #808080;"><em>kumars53@mcmaster.ca</em></span></p>
-&nbsp; 
 
