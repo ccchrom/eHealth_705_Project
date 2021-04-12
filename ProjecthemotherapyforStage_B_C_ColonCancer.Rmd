@@ -246,7 +246,192 @@ per
 obstruct.factor
 </div>
 
+<New EDA additon>
+  
+## Scrutizing the Data
 
+This is a preliminary step to study and analyze the data. In this section:
+
+ * Data is viewed using "distributions()" function from the 'xray' package and the"Datamaid" package. *Note*: Datamaid Report is produced as a seperate report and is provided as part of this assignment submission package.
+ 
+Xray Package
+```{r echo=FALSE}
+library(xray)
+distributions(colon.data[, -c(1)])
+```
+
+
+ <style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+**Preliminary Findings:**
+
+Below are the preliminary findings after reading the graphs and reports produced by methods (Xray, Datamaid) used above.
+
+* Data has total of 614 observations.
+
+* Below variables are already recoded to factor and a new variables are named as variablename.factor. These factor recoded variables are used in the analysis below.
+   * Obstruct
+   * differ
+   * mort_5 yr
+   * Sex
+   * Rx
+   * Perfor
+   * Adhere
+   * Extent
+   * Age
+
+* Some preliminary observations for the variables used in the analysis below:
+    
+   * Age Group - Majorirty of the observation belongs to 60+ age group.
+   * Extent - Majority of the observation belongs to Extent group.
+   * Adhere - Majority of the observation is "No" for adherence.
+   * Perforance - Majority of the observations is "No" while a very few observations belong to "Yes".
+   * Differ - Majority of the observations belong to the "Moderate" differentiation category.
+   * Mort_5 yr - Majority of the observations belong to "Alive". There are some NA in this column.
+
+</div>
+
+
+## Missing Values and Treatment
+
+In this section, the total count of missing values in each column is identified and further treated by replacing them with the most frequently occurring value for that variable. *Note* - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.
+
+### Total Count of Missing Values
+
+The summary table below provides total count of NA for all the variables along with other information like minimum value, Max.value, Mean, Median etc. From the table below it is identified 6 of the variables contain NAs that need to be treated for further analysis.
+
+```{r echo=TRUE, message=FALSE, error=FALSE, warning=FALSE}
+summary(colon.data)
+```
+
+Below is the table of all the variables with the totalcount of NAs. 
+
+```{r}
+MD <- colSums(is.na(colon.data))
+library(kableExtra)
+MD %>%
+  kable(caption = "Table 3: Total count of NA for each variable") %>%
+  kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T) 
+```
+
+ <style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+**Findings:**
+
+Few observations looking at the data in graphs above:
+
+* Below are the columns identified with NA:
+   * Obstruct - 21
+   * nodes - 18
+   * differ - 23
+   * surg - 17
+   * loccomp -20
+   * mort_5yr - 14
+   
+* Since the total count of NA is less than 5%, we will not treat the missing values.
+
+</div>
+
+
+## Demographic Distribution of the data
+
+Graphs below show demographic distribution of data.
+
+
+```{r}
+library(dplyr)
+df <- colon.data %>%
+  count(sex.factor, rx.factor) %>%
+  mutate(pct = n / sum(n),
+         pct_label = scales::percent(pct))
+library(ggplot2)
+ggplot(df, aes(x= sex.factor, fill = rx.factor, y = pct)) +
+  geom_col() +
+  geom_text(aes(label = paste(pct_label, n, sep = "\n")), 
+                lineheight = 0.8,
+                position = position_stack(vjust = 0.5)) +
+  scale_y_continuous(labels = scales::percent)
+```
+
+
+```{r}
+library(dplyr)
+dx <- colon.data %>%
+  count(age.factor, rx.factor) %>%
+  mutate(pct = n / sum(n),
+         pct_label = scales::percent(pct))
+library(ggplot2)
+ggplot(dx, aes(x= age.factor, fill = rx.factor, y = pct)) +
+  geom_col() +
+  geom_text(aes(label = paste(pct_label, n, sep = "\n")), 
+                lineheight = 0.8,
+                position = position_stack(vjust = 0.5)) +
+  scale_y_continuous(labels = scales::percent)
+```
+
+ <style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+**Findings:**
+
+* There are almost equal distribution of males and females in the study. There are more females on the Lev+FU treatment.
+
+* Majority of the study population is from +60 age group followed by 40-59 years and a very small propoortion belong to <40 years age group. There is approximately equal distribution of the population in the 3 age group categories for both the treatments.
+
+
+</div>
+
+## Impacts of  the treaments on the Prognostic Markers of Colon Cancer
+
+Below graphs are plotted to understand the impacts of treatment on the prognostic markers like 
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, error=FALSE, fig.width=8, fig.height=8, comment=NA}
+library(ggplot2)
+p01 <- ggplot(data = colon.data)+ geom_bar (aes(x=perfor.factor, fill=(rx.factor)))+
+       ggtitle(label = "Perforation of colon")
+       
+p02 <- ggplot(data = colon.data)+ geom_bar (aes(x=obstruct.factor, fill=(rx.factor)))+
+       ggtitle(label = "Obstruction of colon by tumour")
+
+p03 <- ggplot(data = colon.data)+ geom_bar (aes(x=adhere.factor, fill=(rx.factor)))+
+       ggtitle(label = "Adherence to nearby organs")
+
+p04 <- ggplot(data = colon.data)+ geom_bar (aes(x=differ.factor, fill=(rx.factor)))+
+       ggtitle(label = "Differentiation of tumour")
+
+p05 <- ggplot(data = colon.data)+ geom_bar (aes(x=extent.factor, fill=(rx.factor)))+
+       ggtitle(label = "Extent of local spread")
+
+p06 <- ggplot(data = colon.data)+ geom_bar (aes(x=mort_5yr, fill=(rx.factor)))+
+       ggtitle(label = "5 years life status")
+
+pacman::p_load("Rmisc")
+multiplot(p01,p02,p03,p04, cols=1)
+multiplot(p05, p06, cols =1)
+  
+``` 
+
+ <style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+**Findings:**
+
+* Add here
+
+</div>
+
+<New EDA addition Ends>
+  
 # Logistic regression using mort_5yr  
 We decided to use mort_5yr as the response variable.
 
