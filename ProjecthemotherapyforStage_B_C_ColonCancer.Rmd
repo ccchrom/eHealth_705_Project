@@ -1088,3 +1088,21 @@ Above we see a chi square value of 8.2 and a p value of .004. We do reject the n
 ## Logistic Regression
 ## Survival Analysis
 # Application
+
+## ggsurvplot code##
+
+```{r}
+library(survminer)
+ggsurvplot(surv.colon, data = colon.data, pval = TRUE, conf.int = TRUE, risk.table = TRUE,  surv.median.line = "hv", ggtheme = theme_bw(),  palette = c("#E7B800", "#2E9FDF"), ncensor.plot = TRUE, break.time.by = 300)
+```
+
+In the plot above:
+
+* The horizontal axis (x-axis) represents time in days, and the vertical axis (y-axis) shows the probability of surviving or the proportion of people surviving. The lines represent survival curves of the two treatment groups. A vertical drop in the curves indicates an event. The vertical tick mark on the curves means that a patient was censored at this time.
+* Confidence bands for each survival curves are displayed in their respective colors.
+* Confidence bands are wide at the tail.
+* At time zero, the survival probability is 1.0 (or 100% of the participants are alive).
+* From the time of approx 350, probability of survival for those on Lev+5FU treatment are higher than probability of those on Lev treatment.
+* p-value is the p-value of the Log-Rank test comparing the treatment groups
+* Risk table below the plot shows absolute number of individuals at risk for both the treatment groups.
+* n.censor plot displays the number of censor subjects at the time. There is no censor after time approx 250.
