@@ -206,7 +206,6 @@ per<- sjt.xtab(colon.data$rx.factor, colon.data$perfor.factor, show.col.prc = TR
                     css.tdata = "border: 1px solid;"))
 per
 ```
-</div>
 
 ## Scrutinizing the Cleaned Data  
 This is a preliminary step to study and analyze the data. In this section:
@@ -323,9 +322,10 @@ ggplot(dx, aes(x= age.factor, fill = rx.factor, y = pct)) +
   scale_fill_brewer(palette="Blues", name = "Treatment stacked by age group")
 ```
 
-<div class = "blue">
 
 ### Findings
+
+<div class = "blue">
 
 * There are almost equal distribution of males and females in the study. There are more females on the Lev+FU treatment.
 
@@ -365,16 +365,10 @@ multiplot(p05, p06, cols =1)
   
 ``` 
 
-<div class = "blue">
-
 ### Findings
 
-* Add here
+**Add here**
 
-</div>
-
-<New EDA addition Ends>
-  
 # Splitting the dataset into a training sample and a testing sample
 
 ```{r , "sample_splitting", fig.width=5, fig.height=5}
@@ -391,18 +385,15 @@ After splitting the complete sample of `r samp[3]` subjects, `r samp[1]` were se
 <style>
 div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 </style>
-<div class = "blue">
+
 
 __Importance of Splitting the dataset into a training sample and a testing sample__
-
-</div>
 
 Cross-validation refers to a set of methods for measuring the performance of a given predictive model on new test data sets.
 The basic idea, behind cross-validation techniques, consists of dividing the data into two sets:
 
-__The training set__, used to train (i.e. build) the model;
-
-__the testing set (or validation set)__ , used to test (i.e. validate) the model by estimating the prediction error.
+* __The training set__, used to train (i.e. build) the model;
+* __the testing set (or validation set)__ , used to test (i.e. validate) the model by estimating the prediction error.
 
 
 # Logistic Regression using Five Year Mortality  
