@@ -1176,6 +1176,15 @@ lm[is.num] <- lapply( lm[is.num], round, 3)
 
 # Survival analysis
 
+```{r }
+library(dplyr)
+colon.data<-read.csv("colon_s.csv") %>%
+  filter(rx!="Obs")
+```
+
+
+# Survival analysis
+
 Table for KM analysis on all cases for the null model.
 
 ```{r }
@@ -1189,6 +1198,9 @@ plot(surv.colon,  xlab="Days till death", ylab="Survival Probability")
 title("Survival curves for colon data, Null model")
 ```
 
+```{r }
+ggsurvplot(colon.survival, data = colon.data, pval = TRUE)
+```
 
 Since RX treatment has not been entered into the model above, the table and graph above convey that the probabilities of survival from colon cancer at each point in time (days). the lower the days, the higher probability of survival. at 23 days time, we had 614 people at risk with a 98% chance of survival. However as we go up in days, the chances of survival go down. We see this illistrated in both the graph and table. For example, at 797 days time, we had 469 peoples chances of survival at below 76%.
 
@@ -1198,11 +1210,16 @@ Since RX treatment has not been entered into the model above, the table and grap
 surv.colon <- survfit(Surv(time,status) ~ rx, conf.int=TRUE, data = colon.data)
 summary(surv.colon)
 ```
+
 ```{r }
 plot(surv.colon, lty = c(2,1), xlab="days till death", ylab="Survival Probability")
 legend(13, .4, c("Probability of survival: Lev treatment"), lty = 2 ) 
 legend(13,.9, c("Probability of survival: Lev+5FU treatment"), lty = 1) 
 title("Survival curves for colon cancer data")
+```
+
+```{r }
+ggsurvplot(colon.survival, data = colon.data, pval = TRUE)
 ```
 
 
@@ -1215,10 +1232,12 @@ For the Lev+5FU treatment group, in 79 days time, 300 people had survived and we
 ## Test statistically if the two treatments are the same or different.
 
 Let's define our hypotheses
-<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
-$H_o:$ There's no difference between the Lev treatment and Lev+5FU treatment $\alpha=0.05$  
-$H_a:$ There is a difference.   
-</p>
+
+Ho: There's no difference between the Lev treatment and Lev+5FU treatment.
+
+Ha: There is a difference 
+
+Alpha: .05
 
 ```{r }
 survdiff(Surv(time, status)~ rx, data=colon.data, rho=0)
