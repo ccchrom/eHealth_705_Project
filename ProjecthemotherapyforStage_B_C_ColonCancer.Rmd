@@ -101,7 +101,21 @@ df %>%
   kable(caption = "World Population Health: All Countries") %>%
   kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T)
 ```
+## Overview of Data
 
+Below tree diagram shows:
+
+* Total number of observations- 929
+* 33% of the observations are for patients who were given levamisole (Lev).
+* 33% were given levamisole + fluorouracil (Lev +5FU)
+* 34% constitutes the controls group. *Note: the control group data will be deleted below*
+* There is almost equal distribution of male and females in both the groups (Lev and Lev+5FU)
+* Majority of the patients belong to the age group of 60+ followed by 40-59 and <40 years.
+</div>
+```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2:add"}
+library(vtree)
+vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
+```
 ## Converting Variables 
 Below the variables are converted to factors, and the observation arm is filtered out.  This was done to primarily focus on the comparison between adjuvant therapy and the current standard at that time.
 ```{r}
@@ -114,16 +128,6 @@ library(Hmisc)
 describe(colon.data)
 ```
 
-## Missing Values and Treatment  
-In this section, the total count of missing values in each column is identified. Since the total count of NA is around 5% (39 out of 614), we will not treat the missing values. *Note - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.*
-```{r}
-MD <- colSums(is.na(colon.data))
-library(kableExtra)
-MD %>%
-  kable(caption = "Table 3: Total count of NA for each variable") %>%
-   kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T) 
-```
-
 # Cleaned Data  
 
 The below table is a visual representation of the cleaned data.
@@ -131,89 +135,20 @@ The below table is a visual representation of the cleaned data.
 ```{r}
 colon.data %>% datatable()
 ```
+# Visual Representation of the Cleaned Data  
 
-# Observations for the Data  
 <div class = "blue">
 Below tree diagram shows:
 
-* Total number of observations- 929
-* 33% of the observations are for patients who were given levamisole (Lev).
-* 33% were given levamisole + fluorouracil (Lev +5FU)
-* 34% constitutes the controls group.
-* there is almost equal distribution of male and females in both the groups (Lev and Lev+5FU)
+* Total number of observations in the Cleaned Dataset- 614
+* 50% of the observations are for patients who were given levamisole (Lev).
+* 50% were given levamisole + fluorouracil (Lev +5FU)
+* In "Lev" treatment group, majority of the patients belong to male whereas in "Lev +5FU" treatment group, majority of the patients belong to Females.
 * Majority of the patients belong to the age group of 60+ followed by 40-59 and <40 years.
 </div>
 ```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2:add"}
 library(vtree)
 vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
-```
-
-
-```{r}
-densityPlot(~age, data = colon.data, bw = bw.SJ, adjust = 1, kernel = dnorm, method = "adaptive")
-bar_charting <- function(gplt, nm)(gplt + scale_fill_brewer(palette="Blues", name = nm) + geom_bar(aes(y =(..count..)/sum(..count..))) + theme_gray() + scale_y_continuous(labels=scales::percent) + ylab("") + xlab(nm) + guides(x =  guide_axis(angle = 45)))
-bar_charting(ggplot(colon.data, aes(x=rx.factor, y="", fill=rx.factor)), "Treatment")
-bar_charting(ggplot(colon.data, aes(x=differ.factor, y="", fill=differ.factor)), "differentiation of tumour")
-bar_charting(ggplot(colon.data, aes(x=extent.factor, y="", fill=extent.factor)), "Extent of local spread")
-```
-<div class = "blue">
-Few observations looking at the data in graphs above:
-
-Below are the columns identified with NA:
-   * Obstruct - 21
-   * nodes - 18
-   * differ - 23
-   * surg - 17
-   * loccomp -20
-   * mort_5yr - 14
-Since the total count of NA is less than 5%, we will not treat the missing values.
-</div>
-
-### Frequencies and Percentages by Sex 
-Below table shows the distribution of sexes in the different treatment therapies
-```{r}
-library(sjPlot)
-x<- sjt.xtab(colon.data$rx.factor, colon.data$sex.factor, show.col.prc = TRUE,
-             CSS = list(css.table = "border: 2px solid;",
-                    css.tdata = "border: 1px solid;"))
-x
-```
-
-<br>
-
-### Frequencies and Percentages by Age Group  
-```{r}
-y<- sjt.xtab(colon.data$rx.factor, colon.data$age.factor, show.col.prc = TRUE,
-             CSS = list(css.table = "border: 2px solid;",
-                    css.tdata = "border: 1px solid;"))
-y
-```
-<br>
-
-### Frequencies and Percentages by Obstruction  
-```{r}
-z<- sjt.xtab(colon.data$rx.factor, colon.data$obstruct.factor, show.col.prc = TRUE,
-             CSS = list(css.table = "border: 2px solid;",
-                    css.tdata = "border: 1px solid;"))
-z
-```
-<br>
-
-### Frequencies and Percentages by Perforation   
-```{r}
-per<- sjt.xtab(colon.data$rx.factor, colon.data$perfor.factor, show.col.prc = TRUE,
-             CSS = list(css.table = "border: 2px solid;",
-                    css.tdata = "border: 1px solid;"))
-per
-```
-
-## Scrutinizing the Cleaned Data  
-This is a preliminary step to study and analyze the data. In this section:
-
-Data is viewed using "distributions()" function from the 'xray' package.
-
-```{r}
-distributions(colon.data[, -c(1)])
 ```
 <div class = "blue">
 ### Preliminary Findings
@@ -257,17 +192,6 @@ The summary table below provides total count of NA for all the variables along w
 summary(colon.data)
 ```
 
-Below is the table of all the variables with the totalcount of NAs. 
-
-```{r}
-MD <- colSums(is.na(colon.data))
-library(kableExtra)
-MD %>%
-  kable(caption = "Table 3: Total count of NA for each variable") %>%
-  kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T) 
-```
-
-<div class = "blue">
 
 ### Findings
 
@@ -1252,3 +1176,23 @@ Above we see a chi square value of 8.2 and a p value of .004. We do reject the n
 ## Logistic Regression
 ## Survival Analysis
 # Application
+
+##ggsurvplot##
+```{r}
+library(survminer)
+ggsurvplot(surv.colon, data = colon.data, pval = TRUE, conf.int = TRUE, risk.table = TRUE,  surv.median.line = "hv", ggtheme = theme_bw(),  palette = c("#E7B800", "#2E9FDF"), ncensor.plot = TRUE, break.time.by = 300)
+```
+
+In the plot above:
+
+* The horizontal axis (x-axis) represents time in days, and the vertical axis (y-axis) shows the probability of surviving or the proportion of people surviving. The lines represent survival curves of the two treatment groups. A vertical drop in the curves indicates an event. The vertical tick mark on the curves means that a patient was censored at this time.
+* Confidence bands for each survival curves are displayed in their respective colors.
+* Confidence bands are wide at the tail.
+* At time zero, the survival probability is 1.0 (or 100% of the participants are alive).
+* From the time of approx 10 to 100, probability of survival for those on standard treatment are higher than probability of those on test treatment.
+* After the time approx 100, the probability of survival for those on the standard treatment gets lower compared to the probability of survival for those on the test treatment.
+* Last person on Standard treatment is around the time 600 whereas test treatment last person is at time 1000.
+* From the graph, it shows the test treatment is less effective than standard treatment in the beginning phase (till time 100) and after that test treatment is superior than the standard treatment.
+* p-value is the p-value of the Log-Rank test comparing the treatment groups
+* Risk table below the plot shows absolute number of individuals at risk for both the treatment groups.
+* n.censor plot displays the number of censor subjects at the time. There is no censor after time approx 250.
