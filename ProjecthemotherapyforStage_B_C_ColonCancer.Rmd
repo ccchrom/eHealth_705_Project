@@ -1,27 +1,28 @@
 ---
-title: "eH705 Project, due 12-Apr-2021"
-subtitle: "hemotherapy for Stage B/C colon cancer"
+title: "eH705 Final Project"
+subtitle: "Chemotherapy for Stage B/C Colon Cancer"
 author:
   name: Neha Kalra, Matthew Jabora, Ibrahim Zifa, Sandeep Delar, Romuald Lamps 
   affiliation: eH705 | eHealth MsC
-date: "15 Apr 2021"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+
 output:
   html_document: 
     number_sections: TRUE
     code_folding: hide
-    toc: yes
-    toc_float: 
-      toc_collapsed: true
+    toc: true
+    toc_float: true
+    toc_collapsed: true
     theme: readable
----  
+--- 
 
 ```{r setup, eval=TRUE, include=FALSE}  
 knitr::opts_chunk$set( echo=TRUE, warning=FALSE, message=FALSE, error=FALSE, comment = NA )
 options(max.print = 10000)
 options(scipen = 999)
-pacman::p_load(DT, kableExtra, magrittr, ggplot2, wrapr, generics, car, psych,xray , ggplot2, texreg, dplyr, wrapr,  sjPlot, knitr, DescTools, Hmisc, corrplot, ggcorrplot, qgraph, corrr, tidyverse,sjmisc, sjlabelled, sjstats, sjPlot,  forcats, kableExtra, captioner, unikn, captioner, car, hrbrthemes, relaimpo, plotflow, tidyverse, dials, tidymodels, ggeffects, haven, glmmTMB, broom, magick, BiocManager )
+pacman::p_load(DT, kableExtra, magrittr, ggplot2, wrapr, generics, car, psych,xray , ggplot2, texreg, dplyr, wrapr,  sjPlot, knitr, DescTools, Hmisc, corrplot, ggcorrplot, qgraph, corrr, tidyverse,sjmisc, sjlabelled, sjstats, sjPlot,  forcats, kableExtra, captioner, unikn, captioner, car, hrbrthemes, relaimpo, plotflow, tidyverse, dials, tidymodels, ggeffects, haven, glmmTMB, broom, magick, BiocManager, vtree )
+remotes::install_github('rstudio/rmarkdown')
 ```   
-
 ```{r "colorize", echo=FALSE, results="hide"}
 colorize <- function(x, color) {
   if (knitr::is_latex_output()) {
@@ -32,8 +33,11 @@ colorize <- function(x, color) {
   } else x
 }
 ```  
-
-# Objectives  
+# Objectives 
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
 We wish to confirm using our own process that adjuvant therapy with the combination of levamisole and fluorouracil significantly reduce death within 5 years compared with no adjuvant therapy – using only levamisole.  We chose to only include these two groups because we are only comparing adjuvant therapy against normal therapy.  Levimasole is already recognized worldwide as an antiparasitic drug that changes ones immune response, similar to methotrexate – so we are considering it a control.  We aim to achieve this by:<br>
 
 1.  Assessing the distributions of variables within the two treatment categories, including: (distribution plots/tables between groups)  
@@ -49,21 +53,25 @@ We wish to confirm using our own process that adjuvant therapy with the combinat
         iii.	Within the serosa – the outermost layer of organs  
         iv.	Contiguous structures – meaning nearby organs  
 2.  Investigating if any of the predictor variables have an impact on each other. (correlation)(VIF)  
-3.  Using stepwise regression to obtain a model that best describes the impact of specific variables on five year life status  
+3.  Using stepwise (linear) regression to obtain a model that best describes the impact of specific variables on time until death.  
 4.	Using a logistic regression model to investigate the association between five year life status and one or more categorical predictor variables within each treatment group (regression models for both groups) (predict) (train+test) (residuals)  
 5.	Assessing whether there are differences in survival (or cumulative incidence of event) among different groups of participants  
     a.  This will be done by testing the null hypothesis of no difference in survival between two or more independent groups.  
         i.	H0: The two survival rates are identical, (α=0.05).    
         ii.	Ha: The two survival rates are not identical.  (chi-square test)  
 6.	Analyzing data within the subset of Levamisole-fluorouracil to find which variables have the greatest impact on 5 year mortality.  (Reliampo)  
-
+</div>
 # Read the file  
+<div class = "blue">
+This data comes from a study investigating the addition of fluorouracil to the treatment regime of Levamisole in subjects with colon cancer.
 ```{r}
 colon.data <- read.csv('colon_s.csv')
 ```
-
+Moertel, C., Fleming, T.,Macdonald, J., Haller, D., Laurie, J., Goodman, P., Ungerleider, J., Emerson, W., Tormey, D., Glick, J., Veeder, M. & Mailliard, J. (1990). Levamisole and Fluorouracil for Adjuvant Therapy of Resected Colon Carcinoma. <i> The New England Journal of Medicine. </i> 332(<i>6</i>).
+</div>
 # Investigating, Cleaning and Recoding the Data  
 ## Column descriptions  
+The variables for this dataset are listed below.
 ```{r}
 df = as.data.frame(matrix( 
   c('id','id',
@@ -81,7 +89,7 @@ df = as.data.frame(matrix(
     'surg','time from surgery to registration (0=short, 1=long)',
     'node4','more than 4 positive lymph nodes',
     'time','days until death',
-    'loccomp','????',
+    'loccomp','location of primary tumor',
     'time.years','years until death',
     'mort_5yr','5 years life status',
     'age.10','Age divided by 10..',
@@ -91,10 +99,11 @@ df = as.data.frame(matrix(
 colnames(df) <- c("Variable", "Description")
 df %>%
   kable(caption = "World Population Health: All Countries") %>%
-  kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T) 
+  kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T)
 ```
 
-## Converting Variables  
+## Converting Variables 
+Below the variables are converted to factors, and the observation arm is filtered out.  This was done to primarily focus on the comparison between adjuvant therapy and the current standard at that time.
 ```{r}
 library(dplyr)
 colon.data <-  colon.data %>% filter(rx.factor!="Obs") 
@@ -106,7 +115,7 @@ describe(colon.data)
 ```
 
 ## Missing Values and Treatment  
-In this section, the total count of missing values in each column is identified. Since the total count of NA is less than 5%, we will not treat the missing values. *Note - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.*
+In this section, the total count of missing values in each column is identified. Since the total count of NA is around 5% (39 out of 614), we will not treat the missing values. *Note - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.*
 ```{r}
 MD <- colSums(is.na(colon.data))
 library(kableExtra)
@@ -117,13 +126,14 @@ MD %>%
 
 # Cleaned Data  
 
-## The Data Frame  
+The below table is a visual representation of the cleaned data.
+
 ```{r}
 colon.data %>% datatable()
 ```
 
-## Observations for the data
-
+# Observations for the Data  
+<div class = "blue">
 Below tree diagram shows:
 
 * Total number of observations- 929
@@ -132,11 +142,10 @@ Below tree diagram shows:
 * 34% constitutes the controls group.
 * there is almost equal distribution of male and females in both the groups (Lev and Lev+5FU)
 * Majority of the patients belong to the age group of 60+ followed by 40-59 and <40 years.
-
+</div>
 ```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2:add"}
 library(vtree)
-vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", 
-  cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
+vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
 ```
 
 
@@ -147,27 +156,20 @@ bar_charting(ggplot(colon.data, aes(x=rx.factor, y="", fill=rx.factor)), "Treatm
 bar_charting(ggplot(colon.data, aes(x=differ.factor, y="", fill=differ.factor)), "differentiation of tumour")
 bar_charting(ggplot(colon.data, aes(x=extent.factor, y="", fill=extent.factor)), "Extent of local spread")
 ```
-
-<style>
-div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
-</style>
 <div class = "blue">
-
 Few observations looking at the data in graphs above:
 
-* Below are the columns identified with NA:
+Below are the columns identified with NA:
    * Obstruct - 21
    * nodes - 18
    * differ - 23
    * surg - 17
    * loccomp -20
    * mort_5yr - 14
-* Since the total count of NA is less than 5%, we will not treat the missing values.
+Since the total count of NA is less than 5%, we will not treat the missing values.
 </div>
 
-*** 
-
-**Frequencies and percentages by Sex**  
+### Frequencies and Percentages by Sex 
 Below table shows the distribution of sexes in the different treatment therapies
 ```{r}
 library(sjPlot)
@@ -179,7 +181,7 @@ x
 
 <br>
 
-**Frequencies and percentages by Age Group**  
+### Frequencies and Percentages by Age Group  
 ```{r}
 y<- sjt.xtab(colon.data$rx.factor, colon.data$age.factor, show.col.prc = TRUE,
              CSS = list(css.table = "border: 2px solid;",
@@ -188,7 +190,7 @@ y
 ```
 <br>
 
-**Frequencies and percentages by obstruction**  
+### Frequencies and Percentages by Obstruction  
 ```{r}
 z<- sjt.xtab(colon.data$rx.factor, colon.data$obstruct.factor, show.col.prc = TRUE,
              CSS = list(css.table = "border: 2px solid;",
@@ -197,44 +199,31 @@ z
 ```
 <br>
 
-**Frequencies and percentages by Perforance**  
+### Frequencies and Percentages by Perforation   
 ```{r}
 per<- sjt.xtab(colon.data$rx.factor, colon.data$perfor.factor, show.col.prc = TRUE,
              CSS = list(css.table = "border: 2px solid;",
                     css.tdata = "border: 1px solid;"))
 per
 ```
-obstruct.factor
 </div>
 
-<New EDA additon>
-
-
-
-# Scrutinizing the Cleaned Data
+## Scrutinizing the Cleaned Data  
 This is a preliminary step to study and analyze the data. In this section:
 
- * Data is viewed using "distributions()" function from the 'xray' package and the"Datamaid" package. *Note*: Datamaid Report is produced as a seperate report and is provided as part of this assignment submission package.
- 
-Xray Package
-```{r echo=FALSE}
-library(xray)
+Data is viewed using "distributions()" function from the 'xray' package.
+
+```{r}
 distributions(colon.data[, -c(1)])
 ```
-
-
- <style>
-div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
-</style>
 <div class = "blue">
+### Preliminary Findings
 
-**Preliminary Findings:**
+Below are the preliminary findings after reading the graphs and reports produced by the method used above.
 
-Below are the preliminary findings after reading the graphs and reports produced by methods (Xray, Datamaid) used above.
+Data has total of 614 observations.
 
-* Data has total of 614 observations.
-
-* Below variables are already recoded to factor and a new variables are named as variablename.factor. These factor recoded variables are used in the analysis below.
+Below variables are already recoded to factor and a new variables are named as variablename.factor. These factor recoded variables are used in the analysis below.
    * Obstruct
    * differ
    * mort_5 yr
@@ -245,7 +234,7 @@ Below are the preliminary findings after reading the graphs and reports produced
    * Extent
    * Age
 
-* Some preliminary observations for the variables used in the analysis below:
+Some preliminary observations for the variables used in the analysis below:
     
    * Age Group - Majority of the observation belongs to 60+ age group.
    * Extent - Majority of the observation belongs to Extent group.
@@ -257,11 +246,11 @@ Below are the preliminary findings after reading the graphs and reports produced
 </div>
 
 
-## Missing Values and Treatment
+### Missing Values and Treatment
 
 In this section, the total count of missing values in each column is identified and further treated by replacing them with the most frequently occurring value for that variable. *Note* - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.
 
-### Total Count of Missing Values
+<h4> Total Count of Missing Values </h4>
 
 The summary table below provides total count of NA for all the variables along with other information like minimum value, Max.value, Mean, Median etc. From the table below it is identified 6 of the variables contain NAs that need to be treated for further analysis.
 
@@ -279,12 +268,9 @@ MD %>%
   kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T) 
 ```
 
- <style>
-div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
-</style>
 <div class = "blue">
 
-**Findings:**
+### Findings
 
 Few observations looking at the data in graphs above:
 
@@ -302,9 +288,7 @@ Few observations looking at the data in graphs above:
 
 
 ## Demographic Distribution of the data
-
 Graphs below show demographic distribution of data.
-
 
 ```{r}
 library(dplyr)
@@ -339,12 +323,9 @@ ggplot(dx, aes(x= age.factor, fill = rx.factor, y = pct)) +
   scale_fill_brewer(palette="Blues", name = "Treatment stacked by age group")
 ```
 
- <style>
-div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
-</style>
 <div class = "blue">
 
-**Findings:**
+### Findings
 
 * There are almost equal distribution of males and females in the study. There are more females on the Lev+FU treatment.
 
@@ -384,12 +365,9 @@ multiplot(p05, p06, cols =1)
   
 ``` 
 
- <style>
-div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
-</style>
 <div class = "blue">
 
-**Findings:**
+### Findings
 
 * Add here
 
@@ -427,7 +405,7 @@ __The training set__, used to train (i.e. build) the model;
 __the testing set (or validation set)__ , used to test (i.e. validate) the model by estimating the prediction error.
 
 
-# Logistic Regression using Five Year Mortality
+# Logistic Regression using Five Year Mortality  
 
 We decided to use mort_5yr as the response variable.
 
@@ -443,10 +421,10 @@ frq( colon.data$mort_5yr , out="v", title= "Sample distribution between dead and
 The Null model is related to the null hypothesis. For a logistic regression model like the following,
 
 $Probability(mortalityAt5years) = f( constant + b_1*X_1 + \epsilon)$  , the hypotheses are:
-
-$H_o: \beta_1 = 0$, $\alpha = 0.05$ (null hypothesis)  
-$H_a: \beta_1 \ne 0$ (alternative hypothesis).
-
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
+$H_o: \beta_1 = 0$, $\alpha = 0.05$ 
+$H_a: \beta_1 \ne 0$ 
+<p>
 If the null hypothesis could not be rejected, the equation would be:   
 
 $Probability(mortalityAt5years) = f( constant + \epsilon )$, where epsilon represents random error.  
@@ -535,15 +513,11 @@ Here I use ANOVA to check if the 2 models deviance are significantly different.
 
 ## Conclusion on the logistic regression test. 
 
-
-
-# Summative Conclusion. 
-
 # Multiple regression using all predictor variables.
-
-__$H_o$__ : coefficient  = 0, a risk of a Type 1 error, = $\alpha = 0.05$  
-__$H_a$__ : coefficient ≠ 0, a risk of a Type 1 error, = $\alpha = 0.05$
-
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
+$H_o: \beta_1 = \beta_2 = \beta_3 ... =0;  \alpha = 0.05$  
+$H_a: \beta_1 \neq 0$
+</p>
 ```{r ,  fig.width=5, fig.height=5, comment=NA}
 RegModel.1 <- 
   lm(mort_5yr.num ~ rx.factor + sex.factor + age.factor + obstruct.factor + perfor.factor + adhere.factor+ differ.factor+ extent.factor,
@@ -575,7 +549,7 @@ tab_model(
 plotreg(RegModel.1, custom.model.names ="Regression of mort_5yr.num")
 ```
 
-# Reducing the model to those variables able to predict well
+## Reducing the model to those variables able to predict well
 
 There are two primary ways to reduce the size of a predictive model based on statistical analysis: 
 
@@ -584,7 +558,7 @@ __1__ Delete those variables that have p-values greater than 0.05;
 __2__ Delete those variables having dangerously high multicollinearity.
 
 
-# Investigation of Multicollinearity (high correlation among the predictors)
+## Investigation of Multicollinearity (high correlation among the predictors)
 
 </div>
 
@@ -592,11 +566,7 @@ __2__ Delete those variables having dangerously high multicollinearity.
 Multicollinearity is the occurrence of high intercorrelations among two or more independent variables in a multiple regression model.
 Multicollinearity in a multiple regression model indicates that collinear independent variables are related in some fashion, although the relationship may or may not be casual.
 
-<style>
-div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
-</style>
 <div class = "blue">
-
 ___Importance of Investigation of Multicollinearity___
 
 </div>
@@ -608,7 +578,7 @@ Before beginning the regression, the correlations below may provide some insight
 __The correlation coefficient__ indicates the strength of the linear relationship that might be existing between two variables.
 
 
-# Relative Importance of Predictors (Drivers)
+## Relative Importance of Predictors (Drivers)
 
 The table below presents all of the relative importance metrics from ‘relaimpo’. 
  
@@ -639,7 +609,7 @@ The tables above answer the question of
 __What are the key drivers of mort_5yr:	5 years life status ?__
 
 
-# Plot: Key Drivers of mort_5yr:	5 years life status
+## Plot: Key Drivers of mort_5yr:	5 years life status
 
 ```{r}
 theme_set(  theme_bw( ))
@@ -660,10 +630,10 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
 ```
 
 
-# Reducing the model to significant predictors
+## Reducing the model to significant predictors
 
 
-# Stepwise Regression
+## Stepwise Regression
 ```{r}
 library(MASS)  
 #step <- stepAIC(RegModel.1, direction="both", na.omit=TRUE)
@@ -681,9 +651,6 @@ The AIC at the top of each regression is the ___Akaike Information Criterion___.
 
 However, AIC will choose the best model from a set, it won’t say anything about absolute quality.Therefore, once the best model has been selected, a hypothesis test will be run to figure out the relationship between the variables in the model selected and mort_5yr: 5 years life status
 
-<style>
-div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
-</style>
 <div class = "blue">
 
 However, AIC will choose the best model from a set, it won’t say anything about absolute quality.Therefore, once the best model has been selected, __a hypothesis test__ will be run to figure out the relationship between the variables in the model selected and LifeExpectancy.
@@ -694,12 +661,11 @@ However, AIC will choose the best model from a set, it won’t say anything abou
 
 __Taking the coefficients from the so-called best model from the stepwise process and using them as the final model__
 
-# Stating and testing the Hypothesis for the variables (rx.factor + age.factor + differ.factor + extent.factor) in the model selected (best model)
-
-__$H_o$__: the coefficients of the variables in the the best model are equal to zero, statistically, at a risk of a Type 1 error, = $\alpha = 0.05$
-
-__$H_a$__: the coefficients of the variables in the the best model are NOT equal to zero, statistically, at a risk of a Type 1 error, = $\alpha = 0.05$
-
+## Stating and testing the Hypothesis for the variables (rx.factor + age.factor + differ.factor + extent.factor) in the model selected (best model)
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
+$H_o$: the coefficients of the variables in the the best model are equal to zero, statistically, at a risk of a Type 1 error, = $\alpha = 0.05$ 
+$H_a$: the coefficients of the variables in the the best model are NOT equal to zero, statistically, at a risk of a Type 1 error
+</p>
 ```{r}
 #tab_model(step,
  # title = "Regression of mort_5yr: 5 years life status on 'best' stepwise model",
@@ -718,7 +684,7 @@ __$H_a$__: the coefficients of the variables in the the best model are NOT equal
 #  ))
 ```
 
-# Plotting the model coefficients (the best model with select 4 variables and the original model with all 8 predictor variables)
+## Plotting the model coefficients (the best model with select 4 variables and the original model with all 8 predictor variables)
 
 ```{r ,  fig.width=5, fig.height=5, comment=NA}
 RegModel.2 <- 
@@ -742,7 +708,7 @@ plot_models(
 ```
 
 
-#The model reduced to only variables having coefficients with significant differences from zero.
+## The model reduced to only variables having coefficients with significant differences from zero.
 
 ```{r ,  fig.width=5, fig.height=5, comment=NA}
 RegModel.2 <- 
@@ -795,14 +761,14 @@ plotreg(RegModel.2, custom.model.names ="Regression models of mort_5yr:5 years l
 ```
 
 
-# Relative importance of the reduced model on all observations
+## Relative importance of the reduced model on all observations
 
 ```{r}
 library(relaimpo) 
 imp.model.2<-calc.relimp(RegModel.2,type=c("lmg"),rela = TRUE)
 imp.model.2
 ```
-# Relative Importance of Predictors (Drivers) in the new/final model
+## Relative Importance of Predictors (Drivers) in the new/final model
 
 ```{r}
 rel.lmg<- calc.relimp(RegModel.2, type="lmg", rela=TRUE)
@@ -833,7 +799,7 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
 ```
 
 
-# Multicollinearity in the reduced model
+## Multicollinearity in the reduced model
 
 Variance inflation factor (VIF): The measure of multicollinearity among the independent variables in a multiple regression model.
 __Table:Variance inflation factor (VIF)__ 
@@ -848,14 +814,10 @@ The smallest possible value of VIF is 1 (absence of multicollinearity). As a rul
 *******************************************************************************
 *******************************************************************************
 
-
 The model will attempt to learn the relationship on the training data and be evaluated on the test data.
 Cross-validation is primarily used in to estimate the skill of a model on unseen data. That is, to use a limited sample in order to estimate how the model is expected to perform in general when used to make predictions on data not used during the training of the model.
 Overfitting and underfitting is a fundamental problem that trips up even experienced data analysts. The developed model may look great, but the problem is if a testing set is never used, the model is nothing more than an overfit representation of the training data. Thus the model does not work when someone else tries to apply it to a new data.
 
-<style>
-div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
-</style>
 <div class = "blue">
 
 ___How good is the model?___
@@ -864,11 +826,10 @@ I’ve built a model, investigated statistical properties, considered the relati
 
 </div>
 
-# 2.b. Building a regression model using the training sample data. Reducing the model to those variables having coefficients significantly different from zero. Explaining the process and the final model.
+## Building a regression model using the training sample data. Reducing the model to those variables having coefficients significantly different from zero. Explaining the process and the final model.
 
-_
 
-# Building a regression model using the training sample data.
+## Building a regression model using the training sample data.
 
 
 ```{r }
@@ -894,14 +855,14 @@ tab_model(
 ```
 
 
-# Stating and testing the Hypothesis for the variables in the __"training_model"__
+## Stating and testing the Hypothesis for the variables in the __"training_model"__
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
+$H_o$: the coefficients of the variables in the the training_model are equal to zero, statistically, at a risk of a Type 1 error, = $\alpha = 0.05$
 
-__$H_o$__: the coefficients of the variables in the the training_model are equal to zero, statistically, at a risk of a Type 1 error, = $\alpha = 0.05$
+$H_a$: the coefficients of the variables in the the training_model are NOT equal to zero, statistically, at a risk of a Type 1 error, = $\alpha = 0.05$
+</p>
 
-__$H_a$__: the coefficients of the variables in the the training_model are NOT equal to zero, statistically, at a risk of a Type 1 error, = $\alpha = 0.05$
- 
-
-# Reducing the model, using Stepwise Regression, to those variables having coefficients significantly different from zero
+## Reducing the model, using Stepwise Regression, to those variables having coefficients significantly different from zero
 
 Since the variable 'Rural' has coefficient that __is  significantly not different from zero (p (sig) = 0.058 > 0.05)__. Hence __$H_o$__ cannot be rejected in this case. 
 
@@ -918,7 +879,7 @@ The “plotreg()” function is used below to present the coefficient estimates 
 plotreg(model.tr, custom.model.names =" Regression models of 'LifeExpectancy' using the Training Sample")
 ```
 
-# 2.c. Reporting on the relative importance of those variables that remain in the model with a table, graph and in words. 
+## Reporting on the relative importance of those variables that remain in the model with a table, graph and in words. 
 
 ```{r}
 library(relaimpo) 
@@ -965,9 +926,9 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
 ```
 
 
-# 2.d. Reporting on the residuals and test if the distribution of the residuals is normal. Why is this important? 
+## Reporting on the residuals and test if the distribution of the residuals is normal. Why is this important? 
 
-# The residuals
+## The residuals
 ```{r}
 predicted <- predict(model.tr, newdata=test  )
 actual <- test$mort_5yr.num # actual Q3a attitudes for testing sample
@@ -984,23 +945,17 @@ head(x, 10) %>%
 
 
 
-# Testing if the distribution of the residuals is normal
-
-__Stating Null and Alternative Hypothesis:__ 
-
+## Testing if the distribution of the residuals is normal
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
 $H_o$: Distribution of residuals is Normal , risk of a Type 1 error = $\alpha = 0.05$.   
-
 $H_a:$ Distribution of residuals is not Normal
-
+</p>
 ```{r  fig.width=5, fig.height=5 }
 library("car")
 qqPlot(model.tr, main="QQ Plot") 
 ```
 
-
 The plot above shows the distribution of the residuals against the expected normal distribution. For normally distributed data, observations should lie approximately on the reference line. Since, there are some (approximately 4) outliers in the data (points at the ends of the line distanced from the bulk of the observations and the reference line) the residuals may not be normally distributed. Hence, further investigation is required. 
-
-*******
 
 In the density plots below, we attempt to visualize the underlying probability distribution of the residuals by drawing an appropriate continuous curve. 
 Residuals do not seem to be normally distributed as residuals are not symmetric about the mean and show bimodality. It should be further investigated by the conducting Normality testing.
@@ -1022,24 +977,22 @@ shapiro.test((residual))
 ```
 
 
-
-# How Important Are Normal Residuals in Regression Analysis?
+## How Important Are Normal Residuals in Regression Analysis?
 
 Prediction intervals are calculated based on the assumption that the residuals are normally distributed. If the residuals are non-normal, the prediction intervals may be inaccurate, affecting the reliability and usability of the model.
 Moreover, while building a optimally fitting linear model, it is assumed that the relationship is linear, and that the errors, or residuals, are simply random fluctuations around the true line. If residuals are not (approximately) normally distributed (with a mean of zero), it can pinpoint potential issues with the model.
 
-## 2.e. Testing homoscedasticity and Stating hypotheses. 
+## Testing homoscedasticity and Stating hypotheses. 
 
 The assumption of homoscedasticity (meaning “same variance”) is central to linear regression models.  Homoscedasticity describes a situation in which the error term (that is, the “noise” or random disturbance in the relationship between the independent variables and the dependent variable) is the same across all values of the independent variables. 
 
 Homoscedasticity in the best model  is tested below using the Breusch Pagan Test. It tests whether variances of residuals from a regression are dependent on the values of an independent variable.
 
 __Stating Null and Alternative Hypothesis:__ 
-
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
 $H_o:$ there are equal or constant variances,  $\alpha$ = 0.05
-
 $H_a:$ there are unequal or non-constant variances    
-
+</p>
 ```{r}
 pacman::p_load( "olsrr" )
 ols_test_breusch_pagan(RegModel.2)
@@ -1047,7 +1000,7 @@ ols_test_breusch_pagan(RegModel.2)
 
 
 
-# 2.f. Using the model based on the training sample to predict mort_5yr:5 years life status for those in the testing sample. How good is the model based on the training sample when used on the testing sample data? 
+## Using the model based on the training sample to predict mort_5yr:5 years life status for those in the testing sample. How good is the model based on the training sample when used on the testing sample data? 
 
 ## Predicting mort_5yr:5 years life status using the training model on the testing dataset
 
@@ -1063,9 +1016,9 @@ actual <- test$ mort_5yr.num # actual attitudes for the testing sample
 x<- as.data.frame(cbind(actual, predicted.tr.te)) 
 ```
 
-### Assessing the model based on the training sample when used on the testing sample data. 
+## Assessing the model based on the training sample when used on the testing sample data. 
 
-#### Scatter plots of Predicted vs Actual
+## Scatter plots of Predicted vs Actual
 
 ```{r,  fig.width=5, fig.height=5}
 scatterplot(x$predicted~x$actual, regLine=TRUE, smooth=FALSE, boxplots=FALSE, data=colon.data,col = "red", main = "Scatterplot of Predicted vs Actual " ,xlab = "Actual",ylab = "Predicted")
@@ -1077,14 +1030,14 @@ Hence, it may be concluded that the model has a weak Goodness of fit since most 
 
 The analysis above, further mandates the assessment of goodness of the model based on the training sample when used on the testing sample data. 
 
-# Correlation between actual and predicted values of the dependent variable, Life Expectancy
+## Correlation between actual and predicted values of the dependent variable, Life Expectancy
 
 ___Stating the Hypothesis___
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
+Ho: correlation = 0 i.e., actual and predicted values of the dependent variable, Life Expectancy, are statistically independent, a risk of a Type 1 error, = α=0.05
 
-Ho: correlation = 0 i.e., actual and predicted values of the dependent variable, Life Expectancy, are __statistically independent__, a risk of a Type 1 error, = α=0.05
-
-Ha: correlation ≠ 0 i.e., actual and predicted values of the dependent variable, Life Expectancy, are __statistically correlated__ , a risk of a Type 1 error, = α=0.05 are correlated a risk of a Type 1 error, = α=0.05
-
+Ha: correlation ≠ 0 i.e., actual and predicted values of the dependent variable, Life Expectancy, are tatistically correlated, a risk of a Type 1 error, = α=0.05 are correlated a risk of a Type 1 error, = α=0.05
+</p>
 ___Testing Hypothesis___
 
 
@@ -1098,7 +1051,7 @@ ___Interpretations___
 
 From the analysis above, it can be inferred that actual and predicted values of the dependent variable, Life Expectancy, are significantly correlated (r = 0.9052694 , p = 0.00000009964). Since p = 0.00000009964 < 0.05, the null hypotheses can be rejected. Also, the confidence interval does not include 0.
 
-# Global test of model assumptions using the ‘gvlma’ package
+## Global test of model assumptions using the ‘gvlma’ package
 
 The ‘gvlma’ package provides a summary assessment of the assumptions for a linear model and they are below for the testing model.
 ```{r,  fig.width=5, fig.height=5}
@@ -1127,20 +1080,19 @@ Moreover, The ‘gvlma’ test provides a lot of output for the regression and t
 
 
 
-<<<<<<< survival_analysis
-#### Relaimpo
+# Relaimpo
 ```{r,  fig.width=5, fig.height=5}
 RegModel.2 <- lm(mort_5yr.num ~ rx.factor + age.factor + differ.factor + 
        extent.factor,
      data=colon.data)
 ```
-#rankings using relaimpo
+## Rankings using relaimpo
 ```{r,  fig.width=5, fig.height=5}
 library(relaimpo) # rel importances of predictors
 imp.lm2<-calc.relimp(RegModel.2, rela = TRUE)
 imp.lm2
 ```
-#make it look better
+## Make it look better
 ```{r,  fig.width=5, fig.height=5}
 rel.lmg<- calc.relimp(RegModel.2, type="lmg", rela=TRUE)
 lm<- data.frame(rel.lmg$lmg, rel.lmg$lmg.rank)
@@ -1153,7 +1105,6 @@ lm[is.num] <- lapply( lm[is.num], round, 3)
 ```
 
 # Survival analysis
-
 
 ```{r }
 library(dplyr)
@@ -1199,12 +1150,10 @@ For the Lev+5FU treatment group, in 79 days time, 300 people had survived and we
 ## Test statistically if the two treatments are the same or different.
 
 Let's define our hypotheses
-
-Ho: There's no difference between the Lev treatment and Lev+5FU treatment.
-
-Ha: There is a difference 
-
-Alpha: .05
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
+$H_o:$ There's no difference between the Lev treatment and Lev+5FU treatment $\alpha=0.05$  
+$H_a:$ There is a difference.   
+</p>
 
 ```{r }
 survdiff(Surv(time, status)~ rx, data=colon.data, rho=0)
@@ -1212,4 +1161,10 @@ survdiff(Surv(time, status)~ rx, data=colon.data, rho=0)
 
 Above we see a chi square value of 8.2 and a p value of .004. We do reject the null hypothesis as the p-value is .004 and well below our threshold of .05. This means there is a significant difference between the Lev treatment and Lev+5FU colon cancer patients.
 
-
+# Summative Conclusion
+## Distributions of Variables
+## Correlation of Variables
+## Stepwise (Linear) Regression
+## Logistic Regression
+## Survival Analysis
+# Application
