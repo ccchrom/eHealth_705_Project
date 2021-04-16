@@ -369,6 +369,7 @@ Of course, we will need some way to test if the model using a predictor variable
 The Extent of local spread, and less significantly the age group,the differentiation of tumour and the treatment seem to be the predictors of the 5 year life status. 
 
 ```{r}
+#  + surg.factor + node4.factor + loccomp.factor
 model_reg_all <- glm(mort_5yr ~ rx.factor + sex.factor + age + age.factor + obstruct.factor + perfor.factor + adhere.factor + differ.factor + extent.factor, family= binomial(logit), data = colon.data)
 summary(model_reg_all)
 ```
@@ -497,7 +498,7 @@ tab_xtab(test$mort_5yr, predicted.classes, var.labels = c("Actual Life status", 
 
 ```{r}
 #library(pROC)
-#invisible(plot(roc(factor(ifelse(test$mort_5yr == "Died", 1, 0)), fitted(test_model)), print.thres = c(.1, .5), col = "red", print.auc = T))
+#invisible(plot(roc(factor(ifelse(test$mort_5yr == "Died", 2, 1)), fitted(test_model)), print.thres = c(.1, .5), col = "red", print.auc = T))
 ```
 
 ### how are the residuals. 
@@ -754,7 +755,6 @@ This graph shows all variables in red, that have coefficients, significantly (p<
 plotreg(RegModel.2, custom.model.names ="Regression models of mort_5yr:5 years life status with significant predictor variables")
 ```
 
-
 ## Relative importance of the reduced model on all observations
 
 ```{r}
@@ -762,6 +762,7 @@ library(relaimpo)
 imp.model.2<-calc.relimp(RegModel.2,type=c("lmg"),rela = TRUE)
 imp.model.2
 ```
+
 ## Relative Importance of Predictors (Drivers) in the new/final model
 
 ```{r}
@@ -1111,6 +1112,11 @@ colon.data<-read.csv("colon_s.csv") %>%
 
 Table for KM analysis on all cases for the null model.
 
+**TODO Rom: Delete?**
+```{r}
+colon.data <- read.csv('colon_s.csv')
+```
+
 ```{r }
 surv.colon <- survfit(Surv(time, status) ~ 1,  data = colon.data)
 summary(surv.colon)
@@ -1123,7 +1129,8 @@ title("Survival curves for colon data, Null model")
 ```
 
 ```{r }
-ggsurvplot(colon.survival, data = colon.data, pval = TRUE)
+library(survminer)
+ggsurvplot(surv.colon, data = colon.data, pval = TRUE)
 ```
 
 Since RX treatment has not been entered into the model above, the table and graph above convey that the probabilities of survival from colon cancer at each point in time (days). the lower the days, the higher probability of survival. at 23 days time, we had 614 people at risk with a 98% chance of survival. However as we go up in days, the chances of survival go down. We see this illistrated in both the graph and table. For example, at 797 days time, we had 469 peoples chances of survival at below 76%.
@@ -1143,7 +1150,7 @@ title("Survival curves for colon cancer data")
 ```
 
 ```{r }
-ggsurvplot(colon.survival, data = colon.data, pval = TRUE)
+ggsurvplot(surv.colon, data = colon.data, pval = TRUE)
 ```
 
 
@@ -1178,9 +1185,11 @@ Above we see a chi square value of 8.2 and a p value of .004. We do reject the n
 # Application
 
 ##ggsurvplot##
+
+**TODO Rom: code below failing**
+
 ```{r}
-library(survminer)
-ggsurvplot(surv.colon, data = colon.data, pval = TRUE, conf.int = TRUE, risk.table = TRUE,  surv.median.line = "hv", ggtheme = theme_bw(),  palette = c("#E7B800", "#2E9FDF"), ncensor.plot = TRUE, break.time.by = 300)
+#ggsurvplot(surv.colon, data = colon.data, pval = TRUE, conf.int = TRUE, risk.table = TRUE,  surv.median.line = "hv", ggtheme = theme_bw(),  palette = c("#E7B800", "#2E9FDF"), ncensor.plot = TRUE, break.time.by = 300)
 ```
 
 In the plot above:
