@@ -5,6 +5,7 @@ author:
   name: Neha Kalra, Matthew Jabora, Ibrahim Zifa, Sandeep Delar, Romuald Lamps 
   affiliation: eH705 | eHealth MsC
 date: "`r format(Sys.time(), '%d %B %Y')`"
+
 output:
   html_document: 
     number_sections: TRUE
@@ -124,7 +125,9 @@ MD %>%
 ```
 
 # Cleaned Data  
+
 The below table is a visual representation of the cleaned data.
+
 ```{r}
 colon.data %>% datatable()
 ```
@@ -331,7 +334,7 @@ ggplot(dx, aes(x= age.factor, fill = rx.factor, y = pct)) +
 
 </div>
 
-## Impacts of the treaments on the Prognostic Markers of Colon Cancer
+## Impacts of the treatments on the Prognostic Markers of Colon Cancer
 
 Below graphs are plotted to understand the impacts of treatment on the prognostic markers like 
 
@@ -372,6 +375,34 @@ multiplot(p05, p06, cols =1)
 
 <New EDA addition Ends>
   
+# Splitting the dataset into a training sample and a testing sample
+
+```{r , "sample_splitting", fig.width=5, fig.height=5}
+pacman::p_load(rsample)
+set.seed(78)
+train_test_split <- initial_split(colon.data)
+train <- training(train_test_split)
+test <- testing(train_test_split)
+(samp <- dim(train_test_split))
+```  
+‘rsample’ package has split the dataset into a training sample (70% of total here) on which the model will be re-developed and a testing sample, sometimes called the holdout sample, on which the quality of predictions will be tested. 
+After splitting the complete sample of `r samp[3]` subjects, `r samp[1]` were selected for the __training sample__ and `r samp[2]` for the __testing or holdout sample__.  
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+__Importance of Splitting the dataset into a training sample and a testing sample__
+
+</div>
+
+Cross-validation refers to a set of methods for measuring the performance of a given predictive model on new test data sets.
+The basic idea, behind cross-validation techniques, consists of dividing the data into two sets:
+
+__The training set__, used to train (i.e. build) the model;
+
+__the testing set (or validation set)__ , used to test (i.e. validate) the model by estimating the prediction error.
 
 
 # Logistic Regression using Five Year Mortality  
@@ -782,32 +813,6 @@ The smallest possible value of VIF is 1 (absence of multicollinearity). As a rul
 
 *******************************************************************************
 *******************************************************************************
-
-## Splitting the dataset into a training sample and a testing sample. Explaining the reason for this step and its importance to predictive modeling. 
-
-```{r , "sample_splitting", fig.width=5, fig.height=5}
-pacman::p_load(rsample)
-set.seed(78)
-train_test_split <- initial_split(colon.data)
-train <- training(train_test_split)
-test <- testing(train_test_split)
-(samp <- dim(train_test_split))
-```  
-‘rsample’ package has split the dataset into a training sample (70% of total here) on which the model will be re-developed and a testing sample, sometimes called the holdout sample, on which the quality of predictions will be tested. 
-After splitting the complete sample of `r samp[3]` subjects, `r samp[1]` were selected for the __training sample__ and `r samp[2]` for the __testing or holdout sample__.  
-
-<div class = "blue">
-
-__Importance of Splitting the dataset into a training sample and a testing sample__
-
-</div>
-
-Cross-validation refers to a set of methods for measuring the performance of a given predictive model on new test data sets.
-The basic idea, behind cross-validation techniques, consists of dividing the data into two sets:
-
-__The training set__, used to train (i.e. build) the model;
-
-__the testing set (or validation set)__ , used to test (i.e. validate) the model by estimating the prediction error.
 
 The model will attempt to learn the relationship on the training data and be evaluated on the test data.
 Cross-validation is primarily used in to estimate the skill of a model on unseen data. That is, to use a limited sample in order to estimate how the model is expected to perform in general when used to make predictions on data not used during the training of the model.
