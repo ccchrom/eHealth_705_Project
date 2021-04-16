@@ -188,6 +188,14 @@ In this section, the total count of missing values in each column is identified 
 
 The summary table below provides total count of NA for all the variables along with other information like minimum value, Max.value, Mean, Median etc. From the table below it is identified 6 of the variables contain NAs that need to be treated for further analysis.
 
+```{r}
+library(dplyr)
+colon.data<-read.csv("colon_s.csv") %>%
+filter(rx!="Obs") %>%
+na.omit()
+```
+
+
 ```{r echo=TRUE, message=FALSE, error=FALSE, warning=FALSE}
 summary(colon.data)
 ```
