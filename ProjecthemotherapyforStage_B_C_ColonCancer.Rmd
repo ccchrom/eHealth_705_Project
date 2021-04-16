@@ -402,7 +402,7 @@ We decided to use mort_5yr as the response variable.
 
 ## NULL model  
 
-The frequency distribution of mortalityAt5years is provided below. Notice that 57.17% of the patients are alive after 5 years. 
+The frequency distribution of mortalityAt5years is provided below. Notice that 57.92% of the patients are alive after 5 years (if we ignore the NA). 
 
 ```{r}
 frq( colon.data$mort_5yr , out="v", title= "Sample distribution between dead and alive patients")
@@ -422,7 +422,7 @@ $Probability(mortalityAt5years) = f( constant + \epsilon )$, where epsilon repre
 
 This Null model lives up to its name, i.e., there are no variables on the right-hand side of the equation, just a "1". (See the code-chunk below.)   
 
-The code-chunk below sets up the null model as "mort_5yr ~ 1" and shows its "Null deviance" of 623.69, which measures the variation among values of the response variable. That deviance becomes a basis of comparison for all other models. If a model can't significantly beat the Null model by producing a lower deviance, it is not worth pursuing.  
+The code-chunk below sets up the null model as "mort_5yr ~ 1" and shows its "Null deviance" of 824.82, which measures the variation among values of the response variable. That deviance becomes a basis of comparison for all other models. If a model can't significantly beat the Null model by producing a lower deviance, it is not worth pursuing.  
 
 ```{r }
 # the Null model is
@@ -436,75 +436,154 @@ The odds ratio is `r coef(null_model) %>%  exp()` as can be obtained by using th
 coef(null_model) %>%  exp()
 ```  
 
-The odds of "Alive after 5 years" is $\frac{255}{351}$ = `r 255/351` from the frequency table above, which is the same as the odds ratio of the model above. This really just represents informed guessing. If you knew that 57.17% of the sample will be alive after 5 years and you were asked to guess if a succession of patients are alive or dead, you would tend to guess "alive" slightly more often than "dead". You should attempt to adjust your guessing so that "alive" is mentioned 37.65% more often than "dead".
+The odds of "Alive after 5 years" is $\frac{255}{351}$ = `r 255/351` from the frequency table above, which is the same as the odds ratio of the model above. This really just represents informed guessing. If you knew that 57.92% of the sample will be alive after 5 years and you were asked to guess if a succession of patients are alive or dead, you would tend to guess "alive" slightly often than "dead". You should attempt to adjust your guessing so that "alive" is mentioned $\frac{351}{255} - 1$ = 37.65% more often than "dead".
 
 Of course, we will need some way to test if the model using a predictor variable is any better than the Null model. We will return to the Null model later and use it as a comparison to see if other models improve on the Null.
 
 ## Use all the variables to perform a logistic regression   
 
-The Extent of local spread, and less significantly the differentiation of tumour and the treatment seem to be the only predictors of the 5 year life status. 
+The Extent of local spread, and less significantly the age group,the differentiation of tumour and the treatment seem to be the predictors of the 5 year life status. 
 
 ```{r}
-model_reg <- glm(mort_5yr ~ rx + sex + age + obstruct + perfor + adhere + differ + extent, family= binomial(logit), data = colon.data)
-summary(model_reg)
+model_reg_all <- glm(mort_5yr ~ rx.factor + sex.factor + age + age.factor + obstruct.factor + perfor.factor + adhere.factor + differ.factor + extent.factor, family= binomial(logit), data = colon.data)
+summary(model_reg_all)
 ```
 
-## Use the Extent of local spread, the differentiation of tumour and the treatment as predictors 
+## Use the Extent of local spread, the age factor, the differentiation of tumour and the treatment as predictors 
 
 **TODO** Interpretation of the result
 
 ```{r}
-model_reg_rx_only <- glm(mort_5yr ~ extent + differ + rx, family= binomial(logit), data = colon.data)
-summary(model_reg_rx_only)
+model_reg_extent_age_differ_treat <- glm(mort_5yr ~ extent.factor + age.factor + differ.factor + rx.factor, family= binomial(logit), data = colon.data)
+summary(model_reg_extent_age_differ_treat)
 ```
 
-## Multicollinearity. 
+### Multicollinearity. 
 
-Variance Inflation Factors (VIF) in the table below are low. A rule-of-thumb says that if the VIF is greater than 4, there may be a severe multicollinearity problem and when above 10 multicollinearity problems are very likely.
+Variance Inflation Factors (VIF) in the table below are low and of no concern. 
+
+A rule-of-thumb says that if the VIF is greater than 4, there may be a severe multicollinearity problem and when above 10 multicollinearity problems are very likely.
 
 ```{r}
 pacman::p_load(car)
-(vf <- vif(model_reg_rx_only) )
+(vf <- vif(model_reg_extent_age_differ_treat) )
 ```
 
-## TODO Anova.  
+## Use the Extent of local spread, the age factor and the treatment as predictors 
+
+**TODO** Interpretation of the result
+
+```{r}
+model_reg_extent_age_treat <- glm(mort_5yr ~ extent.factor + age.factor + rx.factor, family= binomial(logit), data = colon.data)
+summary(model_reg_extent_age_treat)
+```
+
+## Use the Extent of local spread and the age factor
+
+```{r}
+model_reg_extent_age <- glm(mort_5yr ~ extent.factor + age.factor, family= binomial(logit), data = colon.data)
+summary(model_reg_extent_age)
+```
+
+## Use the extent of local spread only
+
+```{r}
+model_reg_extent <- glm(mort_5yr ~ extent.factor, family= binomial(logit), data = colon.data)
+summary(model_reg_extent)
+```
+
+## Compare the 5 models
+
+Adding more predictors, starting primarily from the extent of the spread, then the age group, the treatment and the differentiation of tumor all contributes to improving the model. Every time the AIC, the deviance reduces and $R^2$ increases.
+
+But none are particularly efficient at determining the mortality at 5 years. The 'best' $R^2$ indicates that only 6.8% of the mortality at 5 years can be explained by the extent of the spread, then the age group, the treatment and the differentiation of tumor.
+
+The inclusion of the differenciation of tumor unfortunately also suffers from the lack of data. 16 observations have to be removed from the analysis.
+
+```{r}
+tab_model(  model_reg_extent_age_differ_treat, model_reg_extent_age_treat, model_reg_extent_age, model_reg_extent, null_model, show.p=TRUE,  show.r2=TRUE, show.stat = TRUE, show.aic = TRUE, show.dev = TRUE)
+```
+
+## Anova.  
 
 Here I use ANOVA to check if the 2 models deviance are significantly different.
 
-**This ANOVA test because the model_reg_rx_only has excluded some NA**
+**Comparing the model with the extent of spread versus the model with the extent of the spread, the age group, the treatment**
+
+The ANOVA test indicates that the models deviance are significantly different ( p = 0.0007 < 0.05)
 
 ```{r}
-# anova(model_reg_rx_only, null_model, test ="Chisq")
+anova(model_reg_extent_age_treat, model_reg_extent, test ="Chisq")
 ```
+
+
+**Comparing the 'full' model against the model with the extent of the spread, the age group, the treatment**
+
+To perform this comparison, the differ 'NA' values were removed. The 2 models don't appear different, albeit with a p-value at 0.098.
+
+```{r}
+tmp <- colon.data %>% filter(differ.factor != 'NA')
+model_reg_extent_age_differ_treat_no_NA <- glm(mort_5yr ~ extent.factor + age.factor + differ.factor + rx.factor, family= binomial(logit), data = tmp)
+model_reg_extent_age_treat_no_NA <- glm(mort_5yr ~ extent.factor + age.factor + rx.factor, family= binomial(logit), data = tmp)
+summary(model_reg_extent_age_differ_treat_no_NA)
+
+anova(model_reg_extent_age_differ_treat_no_NA, model_reg_extent_age_treat_no_NA, test ="Chisq")
+```
+
+### Findings
+
+2 models appear very close. Should the differentiation of tumour should be included in the analysis?
+Because it is the variable that contains most NA, it was excluded.
+
+Only the extent of the spread, the age factor and the treatment will be used in the prediction of the mortality at 5 years.
 
 ## Predict against test data. 
 
-**TODO Should we build a test and training data at the start of the file and use it all over?**
+**TODO show the predicted value alongside hte actual value**
+
 ```{r}
-#test_results <- predict(model_training_rx_only, newdata=test)
+training_model <- glm(mort_5yr ~ extent.factor + age.factor + rx.factor, family= binomial(logit), data = train)
+summary(training_model)
+test_model <- predict( training_model, newdata=test)
+
 ```
 
 ## Hit Ratio. 
 
-**TODO Not working and I couldn't figure out why...**
+**TODO I am not sure I am getting it right..**
+
+the Hit ratio is $\frac{68+27}{150}$ or 63.33%. This is not a good model as we would hope to reach 80% of accuracy.
 
 ```{r}
-#predicted.prob <- predict( model_reg_rx_only, newdata=test, type = "response")
-#str(predicted.prob)
+predicted.prob <- predict( training_model, newdata=test, type = "response")
+predicted.classes <- as.factor( ifelse( predicted.prob > 0.5, "Died", "Alive" ) )
+predicted.classes <- fct_relevel( (predicted.classes) , c("Alive","Death" ) )
+str(predicted.prob)
+str(predicted.classes)
 ```
 
 ```{r}
-# library(forcats)
-# predicted.classes <- as.factor( ifelse( # predicted.prob > 0.5, "Alive", "Death" ) )
-# predicted.classes <- fct_relevel( (predicted.classes) , c("Alive","Death" ) )
-# tab_xtab(test$mort_5yr, predicted.classes, var.labels = c("Actual Life status", "Predicted life status"), show.row.prc = TRUE)
+library(forcats)
+tab_xtab(test$mort_5yr, predicted.classes, var.labels = c("Actual Life status", "Predicted life status"), show.row.prc = TRUE)
+```
+
+### ROC
+
+**TODO**
+
+```{r}
+#library(pROC)
+#invisible(plot(roc(factor(ifelse(test$mort_5yr == "Died", 1, 0)), fitted(test_model)), print.thres = c(.1, .5), col = "red", print.auc = T))
 ```
 
 ### how are the residuals. 
 
+**TODO**
+
 ## Conclusion on the logistic regression test. 
 
 # Multiple regression using all predictor variables.
+
 <p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
 $H_o: \beta_1 = \beta_2 = \beta_3 ... =0;  \alpha = 0.05$  
 $H_a: \beta_1 \neq 0$
@@ -1096,11 +1175,6 @@ lm[is.num] <- lapply( lm[is.num], round, 3)
 ```
 
 # Survival analysis
-
-```{r }
-library(dplyr)
-colon.data<-read.csv('colon_s.csv') %>% filter(rx!="Obs")
-```
 
 Table for KM analysis on all cases for the null model.
 
