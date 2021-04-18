@@ -20,7 +20,7 @@ output:
 knitr::opts_chunk$set( echo=TRUE, warning=FALSE, message=FALSE, error=FALSE, comment = NA )
 options(max.print = 10000)
 options(scipen = 999)
-pacman::p_load(DT, kableExtra, magrittr, ggplot2, wrapr, generics, car, psych,xray , ggplot2, texreg, dplyr, wrapr,  sjPlot, knitr, DescTools, Hmisc, corrplot, ggcorrplot, qgraph, corrr, tidyverse,sjmisc, sjlabelled, sjstats, sjPlot,  forcats, kableExtra, captioner, unikn, captioner, car, hrbrthemes, relaimpo, plotflow, tidyverse, dials, tidymodels, ggeffects, haven, glmmTMB, broom, magick, BiocManager, vtree )
+pacman::p_load(DT, kableExtra, magrittr, ggplot2, wrapr, generics, car, psych,xray , ggplot2, texreg, dplyr, wrapr,  sjPlot, knitr, DescTools, Hmisc, corrplot, ggcorrplot, qgraph, corrr, tidyverse,sjmisc, sjlabelled, sjstats, sjPlot,  forcats, kableExtra, captioner, unikn, captioner, car, hrbrthemes, relaimpo, plotflow, tidyverse, dials, tidymodels, ggeffects, haven, glmmTMB, broom, magick, BiocManager, vtree, pscl)
 remotes::install_github('rstudio/rmarkdown')
 ```   
 ```{r "colorize", echo=FALSE, results="hide"}
@@ -310,9 +310,15 @@ p05 <- ggplot(data = colon.data)+ geom_bar (aes(x=extent.factor, fill=(rx.factor
 p06 <- ggplot(data = colon.data)+ geom_bar (aes(x=mort_5yr, fill=(rx.factor)))+
        ggtitle(label = "5 years life status") +
   scale_fill_brewer(palette="Blues", name = "Treatment")
+p07 <- ggplot(data = colon.data)+ geom_bar (aes(x=age.factor, fill=(rx.factor)))+
+       ggtitle(label = "Age group") +
+  scale_fill_brewer(palette="Blues", name = "Treatment")
+p08 <- ggplot(data = colon.data)+ geom_bar (aes(x=node4.factor, fill=(rx.factor)))+
+       ggtitle(label = "More than 4v nymph nodes") +
+  scale_fill_brewer(palette="Blues", name = "Treatment")
 pacman::p_load("Rmisc")
 multiplot(p01,p02,p03,p04, cols=1)
-multiplot(p05, p06, cols =1)
+multiplot(p05, p06, p07, p08, cols =1)
   
 ``` 
 
@@ -353,19 +359,26 @@ We decided to use mort_5yr as the response variable.
 
 ## NULL model  
 
-The frequency distribution of mortalityAt5years is provided below. Notice that 57.92% of the patients are alive after 5 years (if we ignore the NA). 
+The frequency distribution of mortalityAt5years is provided below. Notice that 57.71% of the patients are alive after 5 years. 
 
 ```{r}
 frq( colon.data$mort_5yr , out="v", title= "Sample distribution between dead and alive patients")
 ```
 
+
 The Null model is related to the null hypothesis. For a logistic regression model like the following,
 
-$Probability(mortalityAt5years) = f( constant + b_1*X_1 + \epsilon)$  , the hypotheses are:
+$Probability(mortalityAt5years) = f( constant + \beta_1 * X_1 + \epsilon)$
+
+, the hypotheses are:
+
 <p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
-$H_o: \beta_1 = 0$, $\alpha = 0.05$ 
+
+$H_o: \beta_1 = 0$, $\alpha = 0.05$
+
 $H_a: \beta_1 \ne 0$ 
-<p>
+
+</p>
 If the null hypothesis could not be rejected, the equation would be:   
 
 $Probability(mortalityAt5years) = f( constant + \epsilon )$, where epsilon represents random error.  
@@ -386,26 +399,27 @@ The odds ratio is `r coef(null_model) %>%  exp()` as can be obtained by using th
 coef(null_model) %>%  exp()
 ```  
 
-The odds of "Alive after 5 years" is $\frac{233}{318}$ = `r 233/318` from the frequency table above, which is the same as the odds ratio of the model above. This really just represents informed guessing. If you knew that 57.71% of the sample will be alive after 5 years and you were asked to guess if a succession of patients are alive or dead, you would tend to guess "alive" slightly often than "died". You should attempt to adjust your guessing so that "alive" is mentioned $\frac{318}{233} - 1$ = 36.48% more often than "died".
+The odds of "Alive after 5 years" is $\frac{318}{233}$ = `r 318/233` from the frequency table above, which is the same as the odds ratio of the model above. This really just represents informed guessing. If you knew that 57.71% of the sample will be alive after 5 years and you were asked to guess if a succession of patients are alive or dead, you would tend to guess "alive" slightly often than "died". You should attempt to adjust your guessing so that "alive" is mentioned $\frac{318}{233} - 1$ = 36.48% more often than "died".
 
 Of course, we will need some way to test if the model using a predictor variable is any better than the Null model. We will return to the Null model later and use it as a comparison to see if other models improve on the Null.
 
 ## Use all the variables to perform a logistic regression   
 
-The Extent of local spread, and less significantly the age group and "more than 4 positive lymph nodes" seem to be the predictors of the 5 year life status. 
+The Extent of local spread, and less significantly the age group and "more than 4 positive lymph nodes" seem to be the main predictors of the 5 year life status. 
 
 ```{r}
 #  + surg.factor + node4.factor + loccomp.factor
-model_reg_all <- glm(mort_5yr ~ rx.factor + sex.factor + age + age.factor + obstruct.factor + perfor.factor + adhere.factor + differ.factor + extent.factor + surg.factor + nodes + node4 + loccomp.factor, family= binomial(logit), data = colon.data)
+model_reg_all <- glm(mort_5yr ~ extent.factor + age.factor  + node4.factor + obstruct.factor + perfor.factor + adhere.factor + differ.factor + surg.factor + nodes + loccomp.factor + rx.factor + sex.factor + age, family= binomial(logit), data = colon.data)
 summary(model_reg_all)
 ```
 
 ## Use the Extent of local spread, the age factor and "more than 4 positive lymph nodes" variable
 
-**TODO** Interpretation of the result
+The deviance of this model is 664, lower than the NULL deviance.
+Its AIC (678.64) is also lower than the NULL deviance.
 
 ```{r}
-model_reg_extent_age_node4 <- glm(mort_5yr ~ extent.factor + age.factor + node4, family= binomial(logit), data = colon.data)
+model_reg_extent_age_node4 <- glm(mort_5yr ~ extent.factor + age.factor + node4.factor, family= binomial(logit), data = colon.data)
 summary(model_reg_extent_age_node4)
 ```
 
@@ -423,11 +437,10 @@ pacman::p_load(car)
 
 ## Compare the 3 models
 
-Adding more predictors, starting primarily from the extent of the spread, then the age group, the treatment and the differentiation of tumor all contributes to improving the model. Every time the AIC, the deviance reduces and $R^2$ increases.
+Adding all input as predictors will give the best deviance, but it will be overfitting. By only including the 3 significant predictors (as determined by their p-value), the deviance but the AIC decreases. The AIC is a measure adjusted to penalize the inclusion of a variable that doesnt benefit the model. 
+So we can conclude that the extent of the spread, the age group and 'more than 4 positive lymph nodes' are the main predictor of the life status at 5 years.
 
-But none are particularly efficient at determining the mortality at 5 years. The 'best' $R^2$ indicates that only 14.8% of the mortality at 5 years can be explained by the extent of the spread, the age group and "more than 4 nodes" factor.
-
-The inclusion of the differenciation of tumor unfortunately also suffers from the lack of data. 16 observations have to be removed from the analysis.
+But they are particularly efficient at determining the mortality at 5 years. The $R^2$ indicates that only 14.8% of the mortality at 5 years can be explained by the extent of the spread, the age group and "more than 4 nodes" factor.
 
 ```{r}
 tab_model(  model_reg_all, model_reg_extent_age_node4, null_model, show.p=TRUE,  show.r2=TRUE, show.stat = TRUE, show.aic = TRUE, show.dev = TRUE)
@@ -435,46 +448,134 @@ tab_model(  model_reg_all, model_reg_extent_age_node4, null_model, show.p=TRUE, 
 
 ## Anova.  
 
-Here I use ANOVA to check if the 2 models deviance are significantly different.
+Here I use ANOVA to check if the chosen model deviance is significantly different from the deviance of the NULL model.
 
-**Comparing the model with the extent of spread versus the model with the extent of the spread, the age group, the treatment**
-
-The ANOVA test indicates that the models deviance are significantly different ( p = 0.00000000000000022 < 0.05)
+The ANOVA test indicates that it is significantly different ( p = 0.00000000000000022 < 0.05)
 
 ```{r}
 anova(null_model, model_reg_extent_age_node4, test ="Chisq")
 ```
 
-
-### Findings
-
-2 models appear very close. Should the differentiation of tumour should be included in the analysis?
-Because it is the variable that contains most NA, it was excluded.
-
-Only the extent of the spread, the age factor and "more than 4 nodes" will be used in the prediction of the mortality at 5 years.
-
 ## Predict against test data. 
 
-**TODO show the predicted value alongside hte actual value**
+### Training model
 
 ```{r}
-training_model <- glm(mort_5yr ~ extent.factor + age.factor + node4, family= binomial(logit), data = train)
+training_model <- glm(mort_5yr ~ extent.factor + age.factor + node4.factor, family= binomial(logit), data = train)
 summary(training_model)
 
 ```
 
-## Hit Ratio. 
+The selected predictors from the full sample appear to also be significant with the training model.
 
-**TODO I am not sure I am getting it right..**
+The intercept represent the 'alive' odds of a patient with the following characteristics:
+*The extent of local spread of the tumor is "Contiguous structures – meaning nearby organs"
+*the age group is '<40 years',
+*with less than 4 positive lymphe nodes
+
+The odds being alive for this patient is $e^{-2.5156}$  = `r exp(-2.5156)`
+
+The odds will increase to  $e^{-2.5156 + 3.2343}$ = `r exp(-2.5156 + 3.2343)` if the extent of the spread is submucosa., but will decrease further to $e^{-2.5156 -1.3925}$ = `r exp(-2.5156 +-1.3925)` if the patient has more than 4 positive lymphe nodes.
+
+**McFadden $R^2$**
+
+The McFadden $R^2$ is often considered to be the most credible metric to indicate the approximate percentage of variance in life status that’s explained by the extent of the spread, the age group and the number of nymph nodes. However, its value of 11.95% is very modest.
+ 
+```{r}
+M_r2 <- pR2(training_model)
+M_r2
+```
+
+**odds ratios and 95% Confidence Interval**
+
+```{r}
+tab_model(
+  training_model,
+  title = "Logistic Regression Odds Ratios for life status at 5 years using the Training Sample",
+  show.stat = TRUE,
+  digits = 3,
+  string.stat = "z-value",
+  string.p = "p (sig)",
+  show.fstat = TRUE,
+  show.dev = TRUE,
+  show.aic = TRUE,
+  CSS = list(
+    css.depvarhead = 'color: red;',
+    css.centeralign = 'text-align: left;',
+    css.firsttablecol = 'font-weight: bold;',
+    css.summary = 'color: blue;'
+  )
+)
+```
+
+
+```{r}
+pacman::p_load(ggplot2)
+plot_model(
+  training_model,
+  title = "Logistic Regression of life status at 5 years using the Training Sample",
+  show.p = TRUE
+)
+```
+
+**Using the model**
+
+The model coefficients can be used to predict the 'alive' probability a person with a given tumor extent, of a particular age group and having "more than 4 positive lymph nodes" or not.
+
+The first 6 people in the training sample are shown below.
+
+```{r}
+head(train[, c(2, 22, 26, 24, 30)]) %>% datatable(  rownames = F, filter="top", options = list(pageLength = 10, scrollX=T))
+```
+
+Probability of being alive if you’re the person with RID = 2 above whose spread of the tumor is 'serosa', is over 60 years old and has less than 4 nymph nodes calculates as:
+$e^{-2.5156 + 1.7759 + 1.2298}$ = `r exp(-2.5156 + 1.7759 + 1.2298)`,which is a probability of `r exp(-2.5156 + 1.7759 + 1.2298) / (1+exp(-2.5156 + 1.7759 + 1.2298))`
+
+The probabilities of being alive for the first 6 subjects are below:
+
+```{r}
+training_model$ fitted.values[1:6]
+```
+
+These probabilities can be compared with the actual life status of each patient:
+
+```{r}
+probs <- training_model$ fitted.values[1:6]
+mort_5yr_model <- ifelse(probs > 0.5, "Alive", "Died")
+head(cbind(train[, c(2, 22, 26, 24, 30)],mort_5yr_model)) %>% datatable(  rownames = F, filter="top", options = list(pageLength = 10, scrollX=T))
+
+```
+
+**The "NULL" model and Null deviance using training set**
+
+The NULL model for the training model is shown below:
+
+```{r}
+null_model_train <- glm(formula = mort_5yr ~ 1, 
+    family = binomial(logit), data = train)
+summary(null_model_train)
+```
+
+**The full model and its deviance using training set**
+
+Similar to the model generated from the full sample, the extent of the spread, the age group and the node4 appear to be the main predictors of the life status at 5 years.
+
+```{r}
+model_reg_all_train <- glm(mort_5yr ~ extent.factor + age.factor  + node4.factor + obstruct.factor + perfor.factor + adhere.factor + differ.factor + surg.factor + nodes + loccomp.factor + rx.factor + sex.factor + age, family= binomial(logit), data = train)
+summary(model_reg_all_train)
+```
+
+## Predicting using the training model on the testing dataset
+
+**Hit Ratio. **
 
 the Hit ratio is $\frac{65+27}{137}$ or 67.15%. This is not a good model as we would hope to reach 80% of accuracy.
 
 ```{r}
 predicted.prob <- predict( training_model, newdata=test, type = "response")
-predicted.classes <- as.factor( ifelse( predicted.prob > 0.5, "Died", "Alive" ) )
-predicted.classes <- fct_relevel( (predicted.classes) , c("Alive","Died" ) )
-str(predicted.prob)
-str(predicted.classes)
+predicted.classes <- as.factor( ifelse( predicted.prob > 0.5, "Alive", "Died" ) )
+predicted.classes <- fct_relevel( (predicted.classes) , c("Died","Alive" ) )
+
 ```
 
 ```{r}
@@ -484,11 +585,11 @@ tab_xtab(test$mort_5yr, predicted.classes, var.labels = c("Actual Life status", 
 
 ### ROC
 
-**TODO**
+This ROC representation basically helps to determine the quality of models. A model having an AUC (area under the curve) very close to 1 is the best and 1, or 100%, is perfect. Here it is 0.74 which is much better than guessing, but not a reliable prediction.
 
 ```{r}
 library(pROC)
-test_model <- glm(mort_5yr ~ extent.factor + age.factor + node4, family= binomial(logit), data = test)
+test_model <- glm(mort_5yr ~ extent.factor + age.factor + node4.factor, family= binomial(logit), data = test)
 invisible(plot(roc(factor(ifelse(test$mort_5yr == "Died", 2, 1)), fitted(test_model)), print.thres = c(.1, .5), col = "red", print.auc = T))
 ```
 
@@ -496,7 +597,7 @@ invisible(plot(roc(factor(ifelse(test$mort_5yr == "Died", 2, 1)), fitted(test_mo
 
 ```{r}
 actual <- test$mort_5yr  # actual  
-actual.num <- ifelse( test$mort_5yr == "Alive", 0, 1)
+actual.num <- ifelse( test$mort_5yr == "Alive", 1, 0)
 
 frq( actual.num , out="v", title="Actual mort_5yr as 0 and 1 for test sample" )
 ```
@@ -505,7 +606,7 @@ frq( actual.num , out="v", title="Actual mort_5yr as 0 and 1 for test sample" )
 ```{r}
 residuals.num <- actual.num - predicted.prob
 
-res.act.pred <- as.data.frame(cbind(actual.num, predicted.prob, residuals.num, test[c(14, 22, 26, 30)]) )
+res.act.pred <- as.data.frame(cbind(actual.num, predicted.prob, residuals.num, test[c(22, 26, 24, 30)]) )
 
 library(kableExtra)
 head(res.act.pred, 20) %>%
@@ -515,14 +616,21 @@ head(res.act.pred, 20) %>%
 ```
 
 
-The actual and predicted values of Retplasma_2HiLo and the residuals.
 The following plot shows the predicted probabilities on the horizontal axis and the residuals on the vertical axis. Since the predictions naturally gravitate towards 0 and 1 as the actual values, there are two lines in the plot. The important point is that the distance between the two lines stays fairly consistent from left to right.
 
 ```{r}
 plot_scatter( res.act.pred, predicted.prob, residuals.num )
 ```
 
-## Conclusion on the logistic regression test. 
+## Finding
+
+The extent of the spread, the age group and the number of nymph nodes are the main predictor of a patient life status at 5 years.
+The treatment is not a predictor.
+
+Even so, the model can not be used reliably to determine the 5 year life status of a patient; its hit-ratio doesnt exceed 67%.
+
+
+
 
 # A regression of ‘time.years’ on Build that model based on the full sample. Reduce the model appropriately. Explain the model.
 
@@ -1175,10 +1283,9 @@ Above we see a chi square value of 8.2 and a p value of .004. We do reject the n
 
 ##ggsurvplot##
 
-**TODO Rom: code below failing**
 
 ```{r}
-#ggsurvplot(surv.colon, data = colon.data, pval = TRUE, conf.int = TRUE, risk.table = TRUE,  surv.median.line = "hv", ggtheme = theme_bw(),  palette = c("#E7B800", "#2E9FDF"), ncensor.plot = TRUE, break.time.by = 300)
+ggsurvplot(surv.colon, data = colon.data, pval = TRUE, conf.int = TRUE, risk.table = TRUE,  surv.median.line = "hv", ggtheme = theme_bw(),  palette = c("#E7B800", "#2E9FDF"), ncensor.plot = TRUE, break.time.by = 300)
 ```
 
 In the plot above:
