@@ -1100,29 +1100,6 @@ The t-statistic/t-value is just the estimated coefficient divided by its own sta
 From the p value of 0.000002631 we can estimate that statistically intercept goes beyond zero and can reject the null hypotheses that the line intercepts the vertical axis at the origin, α = 0.05.
 
 
-# Relaimpo
-```{r,  fig.width=5, fig.height=5}
-RegModel.2 <- lm(mort_5yr.num ~ rx.factor + age.factor + differ.factor + 
-       extent.factor,
-     data=colon.data)
-```
-## Rankings using relaimpo
-```{r,  fig.width=5, fig.height=5}
-library(relaimpo) # rel importances of predictors
-imp.lm2<-calc.relimp(RegModel.2, rela = TRUE)
-imp.lm2
-```
-## Make it look better
-```{r,  fig.width=5, fig.height=5}
-rel.lmg<- calc.relimp(RegModel.2, type="lmg", rela=TRUE)
-lm<- data.frame(rel.lmg$lmg, rel.lmg$lmg.rank)
-lm<-lm[order(rel.lmg$lmg.rank),]
-lm <-data.frame(Features=rownames(lm), lm, row.names=NULL)
-colnames(lm) <- c("Variables", "Importance", "Rankings")
-is.num <- sapply(lm, is.numeric)
-lm[is.num] <- lapply( lm[is.num], round, 3)
-#lmLoading/Attaching and Listing of Packages
-```
 
 # Survival analysis
 
