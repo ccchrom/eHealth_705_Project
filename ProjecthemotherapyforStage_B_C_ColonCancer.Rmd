@@ -12,6 +12,7 @@ output:
     code_folding: hide
     toc: true
     toc_float: true
+    toc_depth: 4
     toc_collapsed: true
     theme: readable
 --- 
@@ -39,7 +40,6 @@ colorize <- function(x, color) {
 <style>
 div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 </style>
-
 <div class = "blue">
 We wish to confirm using our own process that adjuvant therapy with the combination of levamisole and fluorouracil significantly reduce death within 5 years compared with no adjuvant therapy – using only levamisole.  We chose to only include these two groups because we are only comparing adjuvant therapy against normal therapy.  Levimasole is already recognized worldwide as an antiparasitic drug that changes ones immune response, similar to methotrexate – so we are considering it a control.  We aim to achieve this by:<br>
 
@@ -66,40 +66,39 @@ We wish to confirm using our own process that adjuvant therapy with the combinat
 </div>
 
 # Read the file  
-
 <div class = "blue">
-This data comes from a study investigating the addition of fluorouracil to the treatment regime of Levamisole in subjects with colon cancer.
+This data comes from a study investigating the addition of fluorouracil to the treatment regime of Levamisole in subjects with colon cancer.<br>
 Moertel, C., Fleming, T.,Macdonald, J., Haller, D., Laurie, J., Goodman, P., Ungerleider, J., Emerson, W., Tormey, D., Glick, J., Veeder, M. & Mailliard, J. (1990). Levamisole and Fluorouracil for Adjuvant Therapy of Resected Colon Carcinoma. <i> The New England Journal of Medicine. </i> 332(<i>6</i>).
 </div>
 
 ```{r}
 colon.data <- read.csv('colon_s.csv')
+str(colon.data)
 ```
 
 # Investigating, Cleaning and Recoding the Data  
-
 ## Column descriptions  
 
-The variables for this dataset are listed below.
+The description of the variables for this dataset are listed below.
 
 ```{r}
 df = as.data.frame(matrix( 
   c('id','id',
     'rx','Treatment - Obs(ervation), Lev(amisole), Lev(amisole)+5-FU',
-    'sex','sex of the patient (1=Male)',
+    'sex','sex of the patient (1 = Male, 0 = Female)',
     'age','age in years',
     'obstruct','obstruction of colon by tumour',
     'perfor','perforation of colon',
     'adhere','adherence to nearby organs',
     'nodes','number of lymph nodes with detectable cancer',
     'status','censoring status',
-    'differ','differentiation of tumour (1=well, 2=moderate, 3=poor)',
+    'differ','histological differentiation of tumour (1=well, 2=moderate, 3=poor)',
     'extent','Extent of local spread (1=submucosa, 2=muscle, 3=serosa,
 4=contiguous structures)',
-    'surg','time from surgery to registration (0=short, 1=long)',
+    'surg','time from surgery to registration (0=short (7-20 days), 1=long (21-35 days))',
     'node4','more than 4 positive lymph nodes',
     'time','days until death',
-    'loccomp','location of primary tumor',
+    'loccomp','location of primary tumor - mi;to[;e ',
     'time.years','years until death',
     'mort_5yr','5 years life status',
     'age.10','Age divided by 10..',
@@ -113,7 +112,7 @@ df %>%
 ```
 
 ## Overview of Data
-
+<div class = "blue">
 Below tree diagram shows:
 
 * Total number of observations- 929
@@ -122,7 +121,7 @@ Below tree diagram shows:
 * 34% constitutes the controls group. *Note: the control group data will be deleted below*
 * There is almost equal distribution of male and females in both the groups (Lev and Lev+5FU)
 * Majority of the patients belong to the age group of 60+ followed by 40-59 and <40 years.
-
+</div>
 
 ```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2:add"}
 library(vtree)
@@ -130,10 +129,12 @@ vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fil
 ```
 
 ## Converting Variables 
-
-Below the variables are converted to factors, and the observation arm is filtered out.  This was done to primarily focus on the comparison between adjuvant therapy and the current standard at that time.
+<div class = "blue">
+Below, character variables are converted to factors, integers are converted to numbers, and the observation arm is filtered out.  This is done to assist with our analysis.  The removal of the observation group done to primarily focus on the comparison between adjuvant therapy and the current standard at that time, and to also focus on other factors - aside from treatment - that may effect survival within that group.
+</div>
 ```{r}
 library(dplyr)
+colon.data <- colon.data %>% filter(rx!="Obs")
 colon.data <- colon.data %>% mutate_if(is.character, as.factor)
 colon.data <- colon.data %>% mutate_if(is.integer, as.numeric)
 colon.data$mort_5yr <- fct_relevel( (colon.data$mort_5yr) , c("Died", "Alive" ) )
@@ -141,16 +142,48 @@ library(Hmisc)
 describe(colon.data)
 ```
 
-# Cleaned Data  
+## Missing Values and Treatment
 
-The below table is a visual representation of the cleaned data.
+In this section, the total count of missing values in each column is identified and further treated by replacing them with the most frequently occurring value for that variable. *Note* - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.
 
+### Total Count of Missing Values>
+<div class = "blue">
+The summary table below provides total count of NA for all the variables along with other information like minimum value, Max.value, Mean, Median etc. From the table below it is identified 6 of the variables contain NAs that need to be treated for further analysis.
+</div>
+```{r}
+MD <- colSums(is.na(colon.data))
+library(kableExtra)
+MD[c(3:14,27,29:30)] %>%
+  kable(caption = "Table 3: Total count of NA for each variable") %>%
+  kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T)
+```
+<div class = "blue">
+It is noted that within this dataset, that there are already factor versions of the variables.  To be sure not to double count, below is a summary of the NAs:
+
+* Below are the columns identified with NA:
+   * obstruct - 15
+   * nodes - 15
+   * differ - 16
+   * surg - 11
+   * loccomp - 14
+   * mort_5yr - 8
+   
+The total of NAs is 79 - which is roughly 12% of the filtered sample of 614.  We chose to omit these values due to the large sample size.  There was worry that if we imputed this data - which is mostly two-level factors - that there may be a large margin of error.  
+</div>
+
+```{r}
+library(dplyr)
+colon.data <- colon.data %>%
+filter(rx!="Obs") %>%
+na.omit()
+```
+
+# Investigating the Cleaned Data
+## Visual Representation 
+The below table and vtree give a quick glance at the cleaned data
 ```{r}
 colon.data %>% datatable()
 ```
-
-# Visual Representation of the Cleaned Data  
-
 <div class = "blue">
 Below tree diagram shows:
 
@@ -166,79 +199,33 @@ library(vtree)
 vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
 ```
 
-### Preliminary Findings
-
+## Preliminary Statistical Findings
 <div class = "blue">
-
 Below are the preliminary findings after reading the graphs and reports produced by the method used above.
 
-Data has total of 614 observations.
+The cleaned, recoded sample has total of 551 observations.
 
-Below variables are already recoded to factor and a new variables are named as variablename.factor. These factor recoded variables are used in the analysis below.
-   * Obstruct
-   * differ
-   * mort_5 yr
-   * Sex
-   * Rx
-   * Perfor
-   * Adhere
-   * Extent
-   * Age
-
-Some preliminary observations for the variables used in the analysis below:
-    
-   * Age Group - Majority of the observation belongs to 60+ age group.
-   * Extent - Majority of the observation belongs to Extent group.
-   * Adhere - Majority of the observation is "No" for adherence.
-   * Performance - Majority of the observations is "No" while a very few observations belong to "Yes".
-   * Differ - Majority of the observations belong to the "Moderate" differentiation category.
-   * Mort_5 yr - Majority of the observations belong to "Alive". There are some NA in this column.
-
+Some preliminary observations for the variables used in the analysis below:  
+    * Sex - A fairly equal distribution between Male and Female.  
+    * Treatment - 15 more observations in the Levimasole group.    
+    * Obstruction - Majority of the observations have no obstructive tumors.  
+    * Perforation - Majority of the observations is "No" while a very few observations belong to "Yes".  
+    * Adherence - Majority of the observation is "No" for adherence to nearby organs.  
+    * Differ - Majority of the observations belong to the "Moderate" histological differentiation category.  
+    * Extent - Majority of the observation belongs to tumor growth into the serosa (lining of the intestine).  
+    * Time to Treatment (surg) - Majority of observations had a shorter time to treatment - meaning within 7 to 20 days.  
+    * Nodes - Majority of observations had less than 4 lymph nodes affected by the tumor.  
+    * Time.years - The mean of years until death is 4.6.  
+    * Age Group - Majority of the observation belongs to 60+ age group. 
+    * Mort_5 yr - Majority of the observations belong to "Alive".  
 </div>
-
-
-### Missing Values and Treatment
-
-In this section, the total count of missing values in each column is identified and further treated by replacing them with the most frequently occurring value for that variable. *Note* - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.
-
-<h4> Total Count of Missing Values </h4>
-
-The summary table below provides total count of NA for all the variables along with other information like minimum value, Max.value, Mean, Median etc. From the table below it is identified 6 of the variables contain NAs that need to be treated for further analysis.
-
-```{r}
-library(dplyr)
-colon.data <- colon.data %>%
-filter(rx!="Obs") %>%
-na.omit()
-```
-
-
 ```{r echo=TRUE, message=FALSE, error=FALSE, warning=FALSE}
 summary(colon.data)
 ```
 
 
-### Findings
-
-<div class = "blue">
-
-Few observations looking at the data in graphs above:
-
-* Below are the columns identified with NA:
-   * Obstruct - 21
-   * nodes - 18
-   * differ - 23
-   * surg - 17
-   * loccomp -20
-   * mort_5yr - 14
-   
-* Since the total count of NA is less than 5%, we will not treat the missing values.
-
-</div>
-
-
-## Demographic Distribution of the data
-Graphs below show demographic distribution of data.
+### Demographic Distribution of the data
+The graphs below show the demographic information between our treatment groups.
 
 ```{r}
 library(dplyr)
@@ -274,7 +261,7 @@ ggplot(dx, aes(x= age.factor, fill = rx.factor, y = pct)) +
 ```
 
 
-### Findings
+#### Findings
 
 <div class = "blue">
 
@@ -285,9 +272,9 @@ ggplot(dx, aes(x= age.factor, fill = rx.factor, y = pct)) +
 
 </div>
 
-## Impacts of the treatments on the Prognostic Markers of Colon Cancer
+### Impacts of the treatments on the Prognostic Markers of Colon Cancer
 
-Below graphs are plotted to understand the impacts of treatment on the prognostic markers like 
+Below graphs are plotted to understand the distribution of tumor descriptors and different outcomes for each treatment.   
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE, error=FALSE, fig.width=8, fig.height=8, comment=NA}
 library(ggplot2)
@@ -322,15 +309,23 @@ multiplot(p05, p06, p07, p08, cols =1)
   
 ``` 
 
-### Findings
+#### Findings
 
 <div class = "blue">
-
-**Add here**
-
+All of these charts show visually, that there is a fairly even distribution within the two treatment groups.  They also show that, within this sample:  
+    * Almost all tumors did not perforate the colon.  
+    * Majority of tumors did not obstruct the colon.  
+    * Majority of tumors did not adhere to nearby organs.  
+    * Majority of tumors had a histological differentiation of moderate.  
+    * Majority of the extent of localized tumor spread was to the serosa (lining) of the colon.  
+    * Slightly more subjects were alive at the five year mark.
+    * Majority of the age within the sample was over 60 years old.  
+    * Majority of the tumors did not effect more than four lymph nodes.  
 </div>
 
-# Splitting the dataset into a training sample and a testing sample
+# Splitting into Training and Testing Samples
+<div class = "blue">
+In order to do further analysis, we have to create training and testing samples  The training sample will be used to create an equation to show the impact that tumor characteristics and treatment will have on life expectancy.  The test sample is used to test that equation for it's accuracy.
 
 ```{r , "sample_splitting", fig.width=5, fig.height=5}
 pacman::p_load(rsample)
@@ -340,53 +335,31 @@ train <- training(train_test_split)
 test <- testing(train_test_split)
 (samp <- dim(train_test_split))
 ```  
-‘rsample’ package has split the dataset into a training sample (70% of total here) on which the model will be re-developed and a testing sample, sometimes called the holdout sample, on which the quality of predictions will be tested. 
-After splitting the complete sample of `r samp[3]` subjects, `r samp[1]` were selected for the __training sample__ and `r samp[2]` for the __testing or holdout sample__.  
 
-
-__Importance of Splitting the dataset into a training sample and a testing sample__
-
-Cross-validation refers to a set of methods for measuring the performance of a given predictive model on new test data sets.
-The basic idea, behind cross-validation techniques, consists of dividing the data into two sets:
-
-* __The training set__, used to train (i.e. build) the model;
-* __the testing set (or validation set)__ , used to test (i.e. validate) the model by estimating the prediction error.
-
-
+After splitting the complete sample of `r samp[3]` subjects, `r samp[1]` were selected for the training sample and `r samp[2]` for the testing (or holdout) sample.  
+</div>
 # Logistic Regression using Five Year Mortality  
+For logistic regression, we must use a factor as the response variable.  We opted to use mort_5yr as it provides inside into whether a subject was alive or deceased at that time.  The hope here is to see which factors have the biggest impact on mortality - treatment, or which tumor descriptors?
 
-We decided to use mort_5yr as the response variable.
-
-## NULL model  
-
-The frequency distribution of mortalityAt5years is provided below. Notice that 57.71% of the patients are alive after 5 years. 
-
+## NULL model 
+The NULL model is created in order to compare our other models to it and assess for its accuracy.  It is the starting point in which we aim to lower the deviance and AIC.  The frequency distribution of mortality at five years is provided below. Notice that 57.71% of the patients are alive after 5 years. 
 ```{r}
 frq( colon.data$mort_5yr , out="v", title= "Sample distribution between dead and alive patients")
 ```
-
-
-The Null model is related to the null hypothesis. For a logistic regression model like the following,
-
-$Probability(mortalityAt5years) = f( constant + \beta_1 * X_1 + \epsilon)$
-
-, the hypotheses are:
+<br>
+<div class = "blue">
+The Null model is related to the null hypothesis. For a logistic regression model like: 
+$Probability(mortalityAt5years) = f( constant + \beta_1 * X_1 + \epsilon)$, the hypotheses are:
 
 <p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
-
-$H_o: \beta_1 = 0$, $\alpha = 0.05$
-
+$H_o: \beta_1 = 0$, $\alpha = 0.05$  
 $H_a: \beta_1 \ne 0$ 
-
 </p>
-If the null hypothesis could not be rejected, the equation would be:   
 
-$Probability(mortalityAt5years) = f( constant + \epsilon )$, where epsilon represents random error.  
+If the null hypothesis could not be rejected, the equation would be: $Probability(mortalityAt5years) = f( constant + \epsilon )$, where epsilon represents random error.
 
-This Null model lives up to its name, i.e., there are no variables on the right-hand side of the equation, just a "1". (See the code-chunk below.)   
-
-The code-chunk below sets up the null model as "mort_5yr ~ 1" and shows its "Null deviance" of 750.68, which measures the variation among values of the response variable. That deviance becomes a basis of comparison for all other models. If a model can't significantly beat the Null model by producing a lower deviance, it is not worth pursuing.  
-
+The code-chunk below sets up the null model as "mort_5yr ~ 1" and shows its "Null deviance" of 750.68, which measures the variation among values of the response variable. That deviance becomes a basis of comparison for all other models, as well as the AIC (Akaike Information Criterion - a measurement of the accuracy of the model). If a model can't significantly beat the Null model by producing a lower deviance and AIC, it is not worth pursuing.  
+</div>
 ```{r }
 # the Null model is
 null_model <- stats::glm(mort_5yr ~ 1, family=binomial(logit), data = colon.data)
@@ -398,95 +371,119 @@ The odds ratio is `r coef(null_model) %>%  exp()` as can be obtained by using th
 ```{r}
 coef(null_model) %>%  exp()
 ```  
-
+<div class = "blue">
 The odds of "Alive after 5 years" is $\frac{318}{233}$ = `r 318/233` from the frequency table above, which is the same as the odds ratio of the model above. This really just represents informed guessing. If you knew that 57.71% of the sample will be alive after 5 years and you were asked to guess if a succession of patients are alive or dead, you would tend to guess "alive" slightly often than "died". You should attempt to adjust your guessing so that "alive" is mentioned $\frac{318}{233} - 1$ = 36.48% more often than "died".
 
 Of course, we will need some way to test if the model using a predictor variable is any better than the Null model. We will return to the Null model later and use it as a comparison to see if other models improve on the Null.
-
-## Use all the variables to perform a logistic regression   
-
-The Extent of local spread, and less significantly the age group and "more than 4 positive lymph nodes" seem to be the main predictors of the 5 year life status. 
-
+</div>
+## Use All Variables to Perform Logistic Regression   
+<div class = "blue">
+The variables: "extent of local spread", "age" group and "more than 4 positive lymph nodes" seem to be the main predictors of the 5 year life status. 
+</div>
 ```{r}
 #  + surg.factor + node4.factor + loccomp.factor
 model_reg_all <- glm(mort_5yr ~ extent.factor + age.factor  + node4.factor + obstruct.factor + perfor.factor + adhere.factor + differ.factor + surg.factor + nodes + loccomp.factor + rx.factor + sex.factor + age, family= binomial(logit), data = colon.data)
 summary(model_reg_all)
 ```
 
-## Use the Extent of local spread, the age factor and "more than 4 positive lymph nodes" variable
-
-The deviance of this model is 664, lower than the NULL deviance.
-Its AIC (678.64) is also lower than the NULL deviance.
+## Create a Reduced Model
+<div class = "blue">
+Using the variables shown to have an impact above - extent, age, and nodes4 - we create a new model to check its deviance and AIC.  The deviance of this model is 664, lower than the NULL deviance, and its AIC (678.64) is also lower than the NULL deviance.  This shows that by focusing on these 3 variables, and not the treatment, we are able to predict mortality more accuratly.
+</div>
 
 ```{r}
 model_reg_extent_age_node4 <- glm(mort_5yr ~ extent.factor + age.factor + node4.factor, family= binomial(logit), data = colon.data)
 summary(model_reg_extent_age_node4)
 ```
 
-### Multicollinearity. 
-
-Variance Inflation Factors (VIF) in the table below are low and of no concern. 
-
-A rule-of-thumb says that if the VIF is greater than 4, there may be a severe multicollinearity problem and when above 10 multicollinearity problems are very likely.
-
+### Multicollinearity
+<div class = "blue">
+Multicollinearity is testing to assess whether these variables have an ability to impact each other, rather than solely the response variable - mort_5yr.  When doing this in logistic regression, you test using Variance Inflation Factors (VIF).  A rule-of-thumb says that if the VIF is greater than 4, there may be a severe multicollinearity problem and when above 10 multicollinearity problems are very likely.  The VIF below are all low and are of no concern.
+</div>
 ```{r}
 pacman::p_load(car)
 (vf <- vif(model_reg_extent_age_node4) )
 ```
 
-
 ## Compare the 3 models
+<div class = "blue">
+Adding all input as predictors will give the best deviance, but it will be overfitting - allowing for errors to effect the equation. By only including the three significant predictors (as determined by their p-value), the deviance increases slightly, but the AIC decreases. The AIC is a measure adjusted to penalize the inclusion of a variable that doesn't benefit the model. 
 
-Adding all input as predictors will give the best deviance, but it will be overfitting. By only including the 3 significant predictors (as determined by their p-value), the deviance but the AIC decreases. The AIC is a measure adjusted to penalize the inclusion of a variable that doesnt benefit the model. 
-So we can conclude that the extent of the spread, the age group and 'more than 4 positive lymph nodes' are the main predictor of the life status at 5 years.
+**So we can conclude that the extent of the spread, the age group and 'more than 4 positive lymph nodes' are the main predictors of the life status at 5 years within this data.**
 
 But they are particularly efficient at determining the mortality at 5 years. The $R^2$ indicates that only 14.8% of the mortality at 5 years can be explained by the extent of the spread, the age group and "more than 4 nodes" factor.
+</div>
 
 ```{r}
 tab_model(  model_reg_all, model_reg_extent_age_node4, null_model, show.p=TRUE,  show.r2=TRUE, show.stat = TRUE, show.aic = TRUE, show.dev = TRUE)
 ```
 
-## Anova.  
+## ANOVA  
+<div class = "blue">
+Here we use ANOVA to check if the chosen model deviance is significantly different from the deviance of the NULL model.  The null hypothesis is that the deviances are the same.
 
-Here I use ANOVA to check if the chosen model deviance is significantly different from the deviance of the NULL model.
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
+$H_o: \mu_1 = \mu_2 = \mu_3 = ...$ risk of a Type 1 error = $\alpha = 0.05$ or something less.  
+$H_a:$ at least one of the means is different from the others.
+</p>
 
-The ANOVA test indicates that it is significantly different ( p = 0.00000000000000022 < 0.05)
-
+The below ANOVA test indicates that it is significantly different ( p = 0.00000000000000022 < 0.05)
+</div>
 ```{r}
 anova(null_model, model_reg_extent_age_node4, test ="Chisq")
 ```
 
-## Predict against test data. 
+## Predicting Against Testing Sample
+Prior to using the above equation, we must ensure that it is suitable for our training sample first.
 
 ### Training model
+Before we assess the correct equation based off of using the entire sample, it helps to look at the Null model, as well as the full model for the training sample.
 
+#### The "NULL" Model Using the Training Sample
+
+The NULL model for the training model is shown below:
+
+```{r}
+null_model_train <- glm(formula = mort_5yr ~ 1, 
+    family = binomial(logit), data = train)
+summary(null_model_train)
+```
+
+#### The Full Model Using Training Sample
+
+Similar to the model generated from the full sample, the extent of the spread, the age group and the node4 appear to be the main predictors of the life status at 5 years.
+
+```{r}
+model_reg_all_train <- glm(mort_5yr ~ extent.factor + age.factor  + node4.factor + obstruct.factor + perfor.factor + adhere.factor + differ.factor + surg.factor + nodes + loccomp.factor + rx.factor + sex.factor + age, family= binomial(logit), data = train)
+summary(model_reg_all_train)
+```
+Now we look at the equation's effectiveness within the training sample.  
 ```{r}
 training_model <- glm(mort_5yr ~ extent.factor + age.factor + node4.factor, family= binomial(logit), data = train)
 summary(training_model)
-
 ```
+<div class = "blue">
+**The selected predictors from the full sample appear to also be significant with the training model.**
 
-The selected predictors from the full sample appear to also be significant with the training model.
-
-The intercept represent the 'alive' odds of a patient with the following characteristics:
-*The extent of local spread of the tumor is "Contiguous structures – meaning nearby organs"
-*the age group is '<40 years',
-*with less than 4 positive lymphe nodes
+The intercept represent the 'alive' odds of a patient with the following characteristics:  
+  * The extent of local spread of the tumor is "Contiguous structures – meaning nearby organs"  
+  * The age group is '<40 years'    
+  * With less than 4 positive lymph nodes  
 
 The odds being alive for this patient is $e^{-2.5156}$  = `r exp(-2.5156)`
 
 The odds will increase to  $e^{-2.5156 + 3.2343}$ = `r exp(-2.5156 + 3.2343)` if the extent of the spread is submucosa., but will decrease further to $e^{-2.5156 -1.3925}$ = `r exp(-2.5156 +-1.3925)` if the patient has more than 4 positive lymphe nodes.
-
-**McFadden $R^2$**
-
+</div>
+#### McFadden $R^2$
+<div class = "blue">
 The McFadden $R^2$ is often considered to be the most credible metric to indicate the approximate percentage of variance in life status that’s explained by the extent of the spread, the age group and the number of nymph nodes. However, its value of 11.95% is very modest.
- 
+</div> 
 ```{r}
 M_r2 <- pR2(training_model)
 M_r2
 ```
 
-**odds ratios and 95% Confidence Interval**
+#### odds ratios and 95% Confidence Interval
 
 ```{r}
 tab_model(
@@ -518,7 +515,7 @@ plot_model(
 )
 ```
 
-**Using the model**
+#### Using the Model
 
 The model coefficients can be used to predict the 'alive' probability a person with a given tumor extent, of a particular age group and having "more than 4 positive lymph nodes" or not.
 
@@ -527,7 +524,7 @@ The first 6 people in the training sample are shown below.
 ```{r}
 head(train[, c(2, 22, 26, 24, 30)]) %>% datatable(  rownames = F, filter="top", options = list(pageLength = 10, scrollX=T))
 ```
-
+<div class = "blue">
 Probability of being alive if you’re the person with RID = 2 above whose spread of the tumor is 'serosa', is over 60 years old and has less than 4 nymph nodes calculates as:
 $e^{-2.5156 + 1.7759 + 1.2298}$ = `r exp(-2.5156 + 1.7759 + 1.2298)`,which is a probability of `r exp(-2.5156 + 1.7759 + 1.2298) / (1+exp(-2.5156 + 1.7759 + 1.2298))`
 
@@ -538,110 +535,75 @@ training_model$ fitted.values[1:6]
 ```
 
 These probabilities can be compared with the actual life status of each patient:
-
+</div>
 ```{r}
 probs <- training_model$ fitted.values[1:6]
 mort_5yr_model <- ifelse(probs > 0.5, "Alive", "Died")
 head(cbind(train[, c(2, 22, 26, 24, 30)],mort_5yr_model)) %>% datatable(  rownames = F, filter="top", options = list(pageLength = 10, scrollX=T))
-
 ```
 
-**The "NULL" model and Null deviance using training set**
-
-The NULL model for the training model is shown below:
-
-```{r}
-null_model_train <- glm(formula = mort_5yr ~ 1, 
-    family = binomial(logit), data = train)
-summary(null_model_train)
-```
-
-**The full model and its deviance using training set**
-
-Similar to the model generated from the full sample, the extent of the spread, the age group and the node4 appear to be the main predictors of the life status at 5 years.
-
-```{r}
-model_reg_all_train <- glm(mort_5yr ~ extent.factor + age.factor  + node4.factor + obstruct.factor + perfor.factor + adhere.factor + differ.factor + surg.factor + nodes + loccomp.factor + rx.factor + sex.factor + age, family= binomial(logit), data = train)
-summary(model_reg_all_train)
-```
-
-## Predicting using the training model on the testing dataset
-
-**Hit Ratio. **
-
-the Hit ratio is $\frac{65+27}{137}$ or 67.15%. This is not a good model as we would hope to reach 80% of accuracy.
-
+## Predicting Using the Training Model on the Test Sample
+### Hit Ratio
+The Hit Ratio tests the accuracy of an equation to get the same results on the test sample, as it did on the training sample.  
+<div class = "blue">
+The Hit ratio is $\frac{65+27}{137}$ or 67.15%. This is not a good model as we would hope to reach 80% of accuracy.
+</div>
 ```{r}
 predicted.prob <- predict( training_model, newdata=test, type = "response")
 predicted.classes <- as.factor( ifelse( predicted.prob > 0.5, "Alive", "Died" ) )
 predicted.classes <- fct_relevel( (predicted.classes) , c("Died","Alive" ) )
-
-```
-
-```{r}
 library(forcats)
 tab_xtab(test$mort_5yr, predicted.classes, var.labels = c("Actual Life status", "Predicted life status"), show.row.prc = TRUE)
 ```
 
-### ROC
-
+### Receiver Operating Characteristic (ROC)
+<div class = "blue">
 This ROC representation basically helps to determine the quality of models. A model having an AUC (area under the curve) very close to 1 is the best and 1, or 100%, is perfect. Here it is 0.74 which is much better than guessing, but not a reliable prediction.
-
+</div>
 ```{r}
 library(pROC)
 test_model <- glm(mort_5yr ~ extent.factor + age.factor + node4.factor, family= binomial(logit), data = test)
 invisible(plot(roc(factor(ifelse(test$mort_5yr == "Died", 2, 1)), fitted(test_model)), print.thres = c(.1, .5), col = "red", print.auc = T))
 ```
 
-### how are the residuals. 
+### Checking The Residuals. 
 
 ```{r}
 actual <- test$mort_5yr  # actual  
 actual.num <- ifelse( test$mort_5yr == "Alive", 1, 0)
-
 frq( actual.num , out="v", title="Actual mort_5yr as 0 and 1 for test sample" )
 ```
 
 
 ```{r}
 residuals.num <- actual.num - predicted.prob
-
 res.act.pred <- as.data.frame(cbind(actual.num, predicted.prob, residuals.num, test[c(22, 26, 24, 30)]) )
-
 library(kableExtra)
 head(res.act.pred, 20) %>%
   kable("html", align = 'clc', digits=5, col.names=c( "actual", "predicted", "residuals", "node4", "extent", "age group", "mort_5yr")) %>%
     kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
     footnote(general = "The actual and predicted values of mort_5yr and the residuals.")
 ```
-
-
+<div class = "blue">
 The following plot shows the predicted probabilities on the horizontal axis and the residuals on the vertical axis. Since the predictions naturally gravitate towards 0 and 1 as the actual values, there are two lines in the plot. The important point is that the distance between the two lines stays fairly consistent from left to right.
-
+</div>
 ```{r}
 plot_scatter( res.act.pred, predicted.prob, residuals.num )
 ```
 
-## Finding
+## Findings
+<div class = "blue">
+The extent of the spread, the age group and the number of nymph nodes are the main predictor of a patient life status at 5 years.  **The treatment is not a predictor.**
 
-The extent of the spread, the age group and the number of nymph nodes are the main predictor of a patient life status at 5 years.
-The treatment is not a predictor.
+Even so, the model can not be used reliably to determine the 5 year life status of a patient; its hit-ratio doesn't exceed 67%.
+</div>
 
-Even so, the model can not be used reliably to determine the 5 year life status of a patient; its hit-ratio doesnt exceed 67%.
-
-
-
-
-# A regression of ‘time.years’ on Build that model based on the full sample. Reduce the model appropriately. Explain the model.
-
-## Multiple regression using all predictor variables.
-
-
-__$H_o$__ : coefficient  = 0, a risk of a Type 1 error, = $\alpha = 0.05$
-
-
-__$H_a$__ : coefficient ≠ 0, a risk of a Type 1 error, = $\alpha = 0.05$
-
+# Stepwise Regression on Time Until Death in Days
+## Multiple Regression Using All Predictor Variables
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
+$H_o$: coefficient  = 0, a risk of a Type 1 error, = $\alpha = 0.05$  
+$H_a$: coefficient ≠ 0  
+</p>
 
 ```{r ,  fig.width=5, fig.height=5, comment=NA}
 RegModel.1 <- 
@@ -683,22 +645,15 @@ __1__ Delete those variables that have p-values greater than 0.05;
 __2__ Delete those variables having dangerously high multicollinearity.
 
 
-## Investigation of Multicollinearity (high correlation among the predictors)
+## Investigation of Multicollinearity within Predictor Variables
 
 <div class = "blue">
-
 Multicollinearity is the occurrence of high intercorrelations among two or more independent variables in a multiple regression model.
 Multicollinearity in a multiple regression model indicates that collinear independent variables are related in some fashion, although the relationship may or may not be casual.
 
-</div>
-
-___Importance of Investigation of Multicollinearity___
-
-Multicollinearity reduces the precision of the estimate coefficients, which weakens the statistical power of the regression model. Hence, we may not be able to trust the p-values to identify independent variables that are statistically significant. 
-
 Before beginning the regression, the correlations below may provide some insights.
 __The correlation coefficient__ indicates the strength of the linear relationship that might be existing between two variables.
-
+</div>
 
 ```{r fig.width=9, fig.height=9}
 rr <- colon.data[c(4, 6,7,8,9,10,11,12,13,14,15,29,31,32)]
@@ -724,7 +679,6 @@ library(car)
 library(relaimpo) 
 imp.lm<-calc.relimp(RegModel.1, type=c("lmg"), rela = TRUE)
 imp.lm
-
 ```
 
 
@@ -763,7 +717,6 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
   theme(axis.title.y=element_text(
                                  face="bold", color="black",size=14))+
   labs(y= "Relative impacts of Variables", x= "Variables")
-
 ```
 
 
@@ -926,7 +879,6 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
   theme(axis.title.y=element_text(
                                  face="bold", color="black",size=14))+
   labs(y= "Relative impacts of Variables", x= "Variables")
-
 ```
 
 
@@ -942,7 +894,7 @@ library(car)
 
 The smallest possible value of VIF is 1 (absence of multicollinearity). As a rule of thumb, a VIF value that exceeds 4 indicates a problematic amount of collinearity amongst the variables.
 
-## 2.b. Building a regression model using the training sample data. Reducing the model to those variables having coefficients significantly different from zero. Explaining the process and the final model.
+## Building a regression model using the training sample data. Reducing the model to those variables having coefficients significantly different from zero. Explaining the process and the final model.
 
 The model will attempt to learn the relationship on the training data and be evaluated on the test data.
 Cross-validation is primarily used in to estimate the skill of a model on unseen data. That is, to use a limited sample in order to estimate how the model is expected to perform in general when used to make predictions on data not used during the training of the model.
@@ -1002,7 +954,7 @@ The “plotreg()” function is used below to present the coefficient estimates 
 plotreg(model.tr, custom.model.names =" Regression models of time.years using the Training Sample")
 ```
 
-## 2.c. Reporting on the relative importance of those variables that remain in the model with a table, graph and in words. 
+## Reporting on the relative importance of those variables that remain in the model with a table, graph and in words. 
 
 ```{r}
 library(relaimpo) 
@@ -1046,11 +998,10 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
   theme(axis.title.y=element_text(
                                  face="bold", color="black",size=14))+
   labs(y= "Relative impacts of Variables", x= "Variables")
-
 ```
 
 
-## 2.d. Reporting on the residuals and test if the distribution of the residuals is normal. Why is this important? 
+## Reporting on the residuals and test if the distribution of the residuals is normal. Why is this important? 
 
 ## The residuals
 ```{r}
@@ -1066,8 +1017,6 @@ head(x, 10) %>%
     kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
     footnote(general = "The actual and predicted values of time.years and the residuals for the first 6 Patients.")
 ```
-
-
 
 ## Testing if the distribution of the residuals is normal
 
@@ -1132,7 +1081,7 @@ ols_test_breusch_pagan(RegModel.2)
 
 
 
-## 2.f. Using the model based on the training sample to predict mort_5yr:5 years life status for those in the testing sample. How good is the model based on the training sample when used on the testing sample data? 
+## Using the model based on the training sample to predict mort_5yr:5 years life status for those in the testing sample. How good is the model based on the training sample when used on the testing sample data? 
 
 ## Predicting mort_5yr:5 years life status using the training model on the testing dataset
 
@@ -1210,15 +1159,14 @@ From the p value of 0.000002631 we can estimate that statistically intercept goe
 
 
 # Survival analysis
-
-Table for KM analysis on all cases for the null model.
-
+Just like with the regression models, we have to start with a null model.  The table for KM analysis on all cases for the null model is below.
 
 ```{r }
 surv.colon <- survfit(Surv(time, status) ~ 1,  data = colon.data)
 summary(surv.colon)
 ```
-Corresponding graph. 
+
+This can be displayed visually with the corresponding graph. 
 
 ```{r }
 plot(surv.colon,  xlab="Days till death", ylab="Survival Probability")
@@ -1229,16 +1177,16 @@ title("Survival curves for colon data, Null model")
 library(survminer)
 ggsurvplot(surv.colon, data = colon.data, pval = TRUE)
 ```
-
-Since RX treatment has not been entered into the model above, the table and graph above convey that the probabilities of survival from colon cancer at each point in time (days). the lower the days, the higher probability of survival. at 23 days time, we had 614 people at risk with a 98% chance of survival. However as we go up in days, the chances of survival go down. We see this illistrated in both the graph and table. For example, at 797 days time, we had 469 peoples chances of survival at below 76%.
-
-## Survival model for the rx treatment on all cases
-
+<div class = "blue">
+Since RX treatment has not been entered into the model above, the table and graph above convey that the probabilities of survival from colon cancer at each point in time (days). the lower the days, the higher probability of survival. at 23 days time, there are 614 people at risk with a 98% chance of survival. However as the days increase, the chances of survival go down. We see this illustrated in both the graph and table. For example, at 797 days time, there are 469 peoples with a chance of survival below 76%.
+</div>
+## Survival Model for the RX Treatment on All Cases
+First this is done by showing the model for each treatment type.
 ```{r }
 surv.colon <- survfit(Surv(time,status) ~ rx, conf.int=TRUE, data = colon.data)
 summary(surv.colon)
 ```
-
+Then displayed graphically
 ```{r }
 plot(surv.colon, lty = c(2,1), xlab="days till death", ylab="Survival Probability")
 legend(13, .4, c("Probability of survival: Lev treatment"), lty = 2 ) 
@@ -1247,32 +1195,30 @@ title("Survival curves for colon cancer data")
 ```
 
 ```{r }
-ggsurvplot(surv.colon, data = colon.data, pval = TRUE)
+ggsurvplot(surv.colon, data = colon.data, pval = TRUE, conf.int=TRUE)
 ```
-
-
+<div class = "blue">
 Above we see the survival analysis divided into two groups. Group one being the Lev treatment and group 2 being the Lev+5FU treatment. Some observations include:
 
 For the Lev treatment group, in 93 days time, 308 people had survived and were at risk with a 99% chance of survival. 
 
 For the Lev+5FU treatment group, in 79 days time, 300 people had survived and were at risk with a 98% chance of survival.
-
+</div>
 ## Test statistically if the two treatments are the same or different.
 
 Let's define our hypotheses
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
+$H_o:$ There's no difference between the Lev treatment and Lev+5FU treatment, $\alpha = 0.05$  
+$H_a:$ There is a difference 
+</p>
 
-Ho: There's no difference between the Lev treatment and Lev+5FU treatment.
-
-Ha: There is a difference 
-
-Alpha: .05
-
+A statistical analysis can be done to prove the differences within the treatment.
 ```{r }
 survdiff(Surv(time, status)~ rx, data=colon.data, rho=0)
 ```
-
+<div class = "blue">
 Above we see a chi square value of 8.2 and a p value of .004. We do reject the null hypothesis as the p-value is .004 and well below our threshold of .05. This means there is a significant difference between the Lev treatment and Lev+5FU colon cancer patients.
-
+</div>
 # Summative Conclusion
 ## Distributions of Variables
 ## Correlation of Variables
@@ -1287,7 +1233,7 @@ Above we see a chi square value of 8.2 and a p value of .004. We do reject the n
 ```{r}
 ggsurvplot(surv.colon, data = colon.data, pval = TRUE, conf.int = TRUE, risk.table = TRUE,  surv.median.line = "hv", ggtheme = theme_bw(),  palette = c("#E7B800", "#2E9FDF"), ncensor.plot = TRUE, break.time.by = 300)
 ```
-
+<div class = "blue">
 In the plot above:
 
 * The horizontal axis (x-axis) represents time in days, and the vertical axis (y-axis) shows the probability of surviving or the proportion of people surviving. The lines represent survival curves of the two treatment groups. A vertical drop in the curves indicates an event. The vertical tick mark on the curves means that a patient was censored at this time.
@@ -1301,3 +1247,4 @@ In the plot above:
 * p-value is the p-value of the Log-Rank test comparing the treatment groups
 * Risk table below the plot shows absolute number of individuals at risk for both the treatment groups.
 * n.censor plot displays the number of censor subjects at the time. There is no censor after time approx 250.
+</div>
