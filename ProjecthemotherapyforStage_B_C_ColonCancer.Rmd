@@ -1188,10 +1188,9 @@ summary(surv.colon)
 ```
 Then displayed graphically
 ```{r }
-plot(surv.colon, lty = c(2,1), xlab="days till death", ylab="Survival Probability")
-legend(13, .4, c("Probability of survival: Lev treatment"), lty = 2 ) 
-legend(13,.9, c("Probability of survival: Lev+5FU treatment"), lty = 1) 
-title("Survival curves for colon cancer data")
+plot(surv.colon, lty = c(2,1), xlab="Days to next event", ylab="Survival Probability", col=c("red","green"))
+legend("topright", legend=c("Probability of survival: Standard Treatment", "Probability of survival: Test Treatment"),fill=c("red","green"),bty="n")
+title("Survival curves for Lung Cancer data")
 ```
 
 ```{r }
