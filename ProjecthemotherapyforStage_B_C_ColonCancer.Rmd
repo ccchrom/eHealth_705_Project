@@ -201,29 +201,31 @@ vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fil
 
 ## Preliminary Statistical Findings
 <div class = "blue">
+<div class = "blue">
 Below are the preliminary findings based on the graphs and the summary below.
-
 The cleaned, recoded sample has total of 551 observations.
-
 Some preliminary observations for the variables used in the analysis below:
 
 **Demographic Distribution**
-      * Sex - A fairly equal distribution between Male and Female.  
-      * Age Group - Majority of the observation belongs to 60+ age group. 
 
+* Sex - A fairly equal distribution between Male and Female.  
+* Age Group - Majority of the observation belongs to 60+ age group.
+      
 **Treatment Indicators**
-      * Treatment - 15 more observations in the Levimasole group.  
-      * Time to Treatment (surg) - Majority of observations had a shorter time to treatment - meaning within 7 to 20 days. 
 
+* Treatment - 15 more observations in the Levimasole group.  
+* Time to Treatment (surg) - Majority of observations had a shorter time to treatment - meaning within 7 to 20 days. 
+      
 **Tumor Descriptors**
-      * Obstruction - Majority of the observations have no obstructive tumors.  
-      * Perforation - Majority of the observations is "No" while a very few observations belong to "Yes".  
-      * Adherence - Majority of the observation is "No" for adherence to nearby organs.  
-      * Differ - Majority of the observations belong to the "Moderate" histological differentiation category.  
-      * Extent - Majority of the observation belongs to tumor growth into the serosa (lining of the intestine).
-      * Nodes - Majority of observations had less than 4 lymph nodes affected by the tumor.  
-      * Time.years - The mean of years until death is 4.6.  
-      * Mort_5 yr - Majority of the observations belong to "Alive".
+
+* Obstruction - Majority of the observations have no obstructive tumors.  
+* Perforation - Majority of the observations is "No" while a very few observations belong to "Yes".  
+* Adherence - Majority of the observation is "No" for adherence to nearby organs.  
+* Differ - Majority of the observations belong to the "Moderate" histological differentiation category.  
+* Extent - Majority of the observation belongs to tumor growth into the serosa (lining of the intestine).
+* Nodes - Majority of observations had less than 4 lymph nodes affected by the tumor.  
+* Time.years - The mean of years until death is 4.6.  
+* Mort_5 yr - Majority of the observations belong to "Alive".
 </div>
 ```{r echo=TRUE, message=FALSE, error=FALSE, warning=FALSE}
 summary(colon.data)
