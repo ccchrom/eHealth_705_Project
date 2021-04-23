@@ -201,7 +201,6 @@ vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fil
 
 ## Preliminary Statistical Findings
 <div class = "blue">
-<div class = "blue">
 Below are the preliminary findings based on the graphs and the summary below.
 The cleaned, recoded sample has total of 551 observations.
 Some preliminary observations for the variables used in the analysis below:
