@@ -158,9 +158,11 @@ MD[c(3:14,27,29:30)] %>%
   kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T)
 ```
 <div class = "blue">
+  
 It is noted that within this dataset, that there are already factor versions of the variables.  To be sure not to double count, below is a summary of the NAs:
 
 * Below are the columns identified with NA:
+
    * obstruct - 15
    * nodes - 15
    * differ - 16
@@ -168,7 +170,8 @@ It is noted that within this dataset, that there are already factor versions of 
    * loccomp - 14
    * mort_5yr - 8
    
-The total of NAs is 79 - which is roughly 12% of the filtered sample of 614.  We chose to omit these values due to the large sample size.  There was worry that if we imputed this data - which is mostly two-level factors - that there may be a large margin of error and it may produce bias in our model. .  
+The total of NAs is 79 - which is roughly 12% of the filtered sample of 614.  We chose to omit these values due to the large sample size.  There was worry that if we imputed this data - which is mostly two-level factors - that there may be a large margin of error and it may produce bias in our model.
+
 </div>
 
 ```{r}
@@ -185,6 +188,7 @@ The below table and vtree give a quick glance at the cleaned data
 colon.data %>% datatable()
 ```
 <div class = "blue">
+ 
 Below tree diagram shows:
 
 * Total number of observations in the Cleaned Dataset- 551
@@ -192,6 +196,7 @@ Below tree diagram shows:
 * 49% were given levamisole + fluorouracil (Lev +5FU)
 * There are almost equal distribution of males and females in the study. There are more females on the Lev+FU treatment.
 * Majority of the study population is from +60 age group followed by 40-59 years and a very small propoortion belong to <40 years age group. There is approximately equal distribution of the population in the 3 age group categories for both the treatments.
+
 </div>
 
 ```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2: Tree Diagram of Cleaned Colon Dataset"}
