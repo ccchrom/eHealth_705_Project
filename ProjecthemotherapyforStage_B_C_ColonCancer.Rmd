@@ -123,7 +123,7 @@ Below tree diagram shows:
 * Majority of the patients belong to the age group of 60+ followed by 40-59 and <40 years.
 </div>
 
-```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2:add"}
+```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 1: Tree Diagram of Colon Data by Rx, Sex and Age Group"}
 library(vtree)
 vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
 ```
@@ -144,7 +144,7 @@ describe(colon.data)
 
 ## Missing Values and Treatment
 
-In this section, the total count of missing values in each column is identified and further treated by replacing them with the most frequently occurring value for that variable. *Note* - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.
+In this section, the total count of missing values (NA) in each column is identified and treated *Note* - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.
 
 ### Total Count of Missing Values>
 <div class = "blue">
@@ -168,7 +168,7 @@ It is noted that within this dataset, that there are already factor versions of 
    * loccomp - 14
    * mort_5yr - 8
    
-The total of NAs is 79 - which is roughly 12% of the filtered sample of 614.  We chose to omit these values due to the large sample size.  There was worry that if we imputed this data - which is mostly two-level factors - that there may be a large margin of error.  
+The total of NAs is 79 - which is roughly 12% of the filtered sample of 614.  We chose to omit these values due to the large sample size.  There was worry that if we imputed this data - which is mostly two-level factors - that there may be a large margin of error and it may produce bias in our model. .  
 </div>
 
 ```{r}
@@ -187,141 +187,278 @@ colon.data %>% datatable()
 <div class = "blue">
 Below tree diagram shows:
 
-* Total number of observations in the Cleaned Dataset- 614
-* 50% of the observations are for patients who were given levamisole (Lev).
-* 50% were given levamisole + fluorouracil (Lev +5FU)
-* In "Lev" treatment group, majority of the patients belong to male whereas in "Lev +5FU" treatment group, majority of the patients belong to Females.
-* Majority of the patients belong to the age group of 60+ followed by 40-59 and <40 years.
+* Total number of observations in the Cleaned Dataset- 551
+* 51% of the observations are for patients who were given levamisole (Lev).
+* 49% were given levamisole + fluorouracil (Lev +5FU)
+* There are almost equal distribution of males and females in the study. There are more females on the Lev+FU treatment.
+* Majority of the study population is from +60 age group followed by 40-59 years and a very small propoortion belong to <40 years age group. There is approximately equal distribution of the population in the 3 age group categories for both the treatments.
 </div>
 
-```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2:add"}
+```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2: Tree Diagram of Cleaned Colon Dataset"}
 library(vtree)
 vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
 ```
 
 ## Preliminary Statistical Findings
 <div class = "blue">
-Below are the preliminary findings after reading the graphs and reports produced by the method used above.
-
+<div class = "blue">
+Below are the preliminary findings based on the graphs and the summary below.
 The cleaned, recoded sample has total of 551 observations.
+Some preliminary observations for the variables used in the analysis below:
 
-Some preliminary observations for the variables used in the analysis below:  
-    * Sex - A fairly equal distribution between Male and Female.  
-    * Treatment - 15 more observations in the Levimasole group.    
-    * Obstruction - Majority of the observations have no obstructive tumors.  
-    * Perforation - Majority of the observations is "No" while a very few observations belong to "Yes".  
-    * Adherence - Majority of the observation is "No" for adherence to nearby organs.  
-    * Differ - Majority of the observations belong to the "Moderate" histological differentiation category.  
-    * Extent - Majority of the observation belongs to tumor growth into the serosa (lining of the intestine).  
-    * Time to Treatment (surg) - Majority of observations had a shorter time to treatment - meaning within 7 to 20 days.  
-    * Nodes - Majority of observations had less than 4 lymph nodes affected by the tumor.  
-    * Time.years - The mean of years until death is 4.6.  
-    * Age Group - Majority of the observation belongs to 60+ age group. 
-    * Mort_5 yr - Majority of the observations belong to "Alive".  
+**Demographic Distribution**
+
+* Sex - A fairly equal distribution between Male and Female.  
+* Age Group - Majority of the observation belongs to 60+ age group.
+      
+**Treatment Indicators**
+
+* Treatment - 15 more observations in the Levimasole group.  
+* Time to Treatment (surg) - Majority of observations had a shorter time to treatment - meaning within 7 to 20 days. 
+      
+**Tumor Descriptors**
+
+* Obstruction - Majority of the observations have no obstructive tumors.  
+* Perforation - Majority of the observations is "No" while a very few observations belong to "Yes".  
+* Adherence - Majority of the observation is "No" for adherence to nearby organs.  
+* Differ - Majority of the observations belong to the "Moderate" histological differentiation category.  
+* Extent - Majority of the observation belongs to tumor growth into the serosa (lining of the intestine).
+* Nodes - Majority of observations had less than 4 lymph nodes affected by the tumor.  
+* Time.years - The mean of years until death is 4.6.  
+* Mort_5 yr - Majority of the observations belong to "Alive".
 </div>
 ```{r echo=TRUE, message=FALSE, error=FALSE, warning=FALSE}
 summary(colon.data)
 ```
 
+### Visualizing Data {-}
 
-### Demographic Distribution of the data
-The graphs below show the demographic information between our treatment groups.
-
-```{r}
-library(dplyr)
-df <- colon.data %>%
-  count(sex.factor, rx.factor) %>%
-  mutate(pct = n / sum(n),
-         pct_label = scales::percent(pct))
-library(ggplot2)
-ggplot(df, aes(x= sex.factor, fill = rx.factor, y = pct)) +
-  geom_col() +
-  geom_text(aes(label = paste(pct_label, n, sep = "\n")), 
-                lineheight = 0.8,
-                position = position_stack(vjust = 0.5)) +
-  scale_y_continuous(labels = scales::percent) +
-  scale_fill_brewer(palette="Blues", name = "Treatment stacked by sex")
-```
-
-
-```{r}
-library(dplyr)
-dx <- colon.data %>%
-  count(age.factor, rx.factor) %>%
-  mutate(pct = n / sum(n),
-         pct_label = scales::percent(pct))
-library(ggplot2)
-ggplot(dx, aes(x= age.factor, fill = rx.factor, y = pct)) +
-  geom_col() +
-  geom_text(aes(label = paste(pct_label, n, sep = "\n")), 
-                lineheight = 0.8,
-                position = position_stack(vjust = 0.5)) +
-  scale_y_continuous(labels = scales::percent) +
-  scale_fill_brewer(palette="Blues", name = "Treatment stacked by age group")
-```
-
-
-#### Findings
-
-<div class = "blue">
-
-* There are almost equal distribution of males and females in the study. There are more females on the Lev+FU treatment.
-
-* Majority of the study population is from +60 age group followed by 40-59 years and a very small propoortion belong to <40 years age group. There is approximately equal distribution of the population in the 3 age group categories for both the treatments.
-
-
-</div>
-
-### Impacts of the treatments on the Prognostic Markers of Colon Cancer
-
-Below graphs are plotted to understand the distribution of tumor descriptors and different outcomes for each treatment.   
-
+Below graphs are plotted to understand the Demographic distribution, treatment distribution, time to treatment and the tumor descriptors.
 ```{r echo=TRUE, message=FALSE, warning=FALSE, error=FALSE, fig.width=8, fig.height=8, comment=NA}
 library(ggplot2)
-p01 <- ggplot(data = colon.data)+ geom_bar (aes(x=perfor.factor, fill=(rx.factor)))+
-       ggtitle(label = "Perforation of colon") +
-  scale_fill_brewer(palette="Blues", name = "Treatment")
-       
-p02 <- ggplot(data = colon.data)+ geom_bar (aes(x=obstruct.factor, fill=(rx.factor)))+
-       ggtitle(label = "Obstruction of colon by tumour") +
-  scale_fill_brewer(palette="Blues", name = "Treatment")
-p03 <- ggplot(data = colon.data)+ geom_bar (aes(x=adhere.factor, fill=(rx.factor)))+
-       ggtitle(label = "Adherence to nearby organs") +
-  scale_fill_brewer(palette="Blues", name = "Treatment")
-p04 <- ggplot(data = colon.data)+ geom_bar (aes(x=differ.factor, fill=(rx.factor)))+
-       ggtitle(label = "Differentiation of tumour") +
-  scale_fill_brewer(palette="Blues", name = "Treatment")
-p05 <- ggplot(data = colon.data)+ geom_bar (aes(x=extent.factor, fill=(rx.factor)))+
-       ggtitle(label = "Extent of local spread") +
-  scale_fill_brewer(palette="Blues", name = "Treatment")
-p06 <- ggplot(data = colon.data)+ geom_bar (aes(x=mort_5yr, fill=(rx.factor)))+
-       ggtitle(label = "5 years life status") +
-  scale_fill_brewer(palette="Blues", name = "Treatment")
-p07 <- ggplot(data = colon.data)+ geom_bar (aes(x=age.factor, fill=(rx.factor)))+
-       ggtitle(label = "Age group") +
-  scale_fill_brewer(palette="Blues", name = "Treatment")
-p08 <- ggplot(data = colon.data)+ geom_bar (aes(x=node4.factor, fill=(rx.factor)))+
-       ggtitle(label = "More than 4v nymph nodes") +
-  scale_fill_brewer(palette="Blues", name = "Treatment")
+library(dplyr)
+library(scales)
+
+plotdata12 <- colon.data%>%
+  count(sex.factor)%>%
+  mutate(pct = n / sum(n),
+         pctlabel = paste0(round(pct*100), "%"))
+
+p16 <- ggplot(plotdata12, 
+       aes(x = reorder(sex.factor, -pct),
+           y = pct)) + 
+  geom_bar(stat = "identity", 
+           fill = "indianred3", 
+           color = "black") +
+  geom_text(aes(label = pctlabel), 
+            vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Sex", 
+       y = "Percent", 
+       title  = "Sex Distribution")
+
+
+plotdata13 <- colon.data %>%
+  count(age.factor) %>%
+  mutate(pct = n / sum(n),
+         pctlabel = paste0(round(pct*100), "%"))
+
+p17 <- ggplot(plotdata13, 
+       aes(x = reorder(age.factor, -pct),
+           y = pct)) + 
+  geom_bar(stat = "identity", 
+           fill = "indianred3", 
+           color = "black") +
+  geom_text(aes(label = pctlabel), 
+            vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Age Group", 
+       y = "Percent", 
+       title  = "Age Group Distribution")
+
+plotdata9 <- colon.data%>%
+  count(rx.factor)%>%
+  mutate(pct = n / sum(n),
+         pctlabel = paste0(round(pct*100), "%"))
+
+p14 <- ggplot(plotdata9, 
+       aes(x = reorder(rx.factor, -pct),
+           y = pct)) + 
+  geom_bar(stat = "identity", 
+           fill = "indianred3", 
+           color = "black") +
+  geom_text(aes(label = pctlabel), 
+            vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Treatment", 
+       y = "Percent", 
+       title  = "Treatment Distribution")
+
+
+plotdata10 <- colon.data %>%
+  count(surg.factor) %>%
+  mutate(pct = n / sum(n),
+         pctlabel = paste0(round(pct*100), "%"))
+
+p15 <- ggplot(plotdata10, 
+       aes(x = reorder(surg.factor, -pct),
+           y = pct)) + 
+  geom_bar(stat = "identity", 
+           fill = "indianred3", 
+           color = "black") +
+  geom_text(aes(label = pctlabel), 
+            vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Surgery Time", 
+       y = "Percent", 
+       title  = "Surgery Time Distribution")
+
+plotdata <- colon.data%>%
+  count(perfor.factor)%>%
+  mutate(pct = n / sum(n),
+         pctlabel = paste0(round(pct*100), "%"))
+
+p01 <- ggplot(plotdata, 
+       aes(x = reorder(perfor.factor, -pct),
+           y = pct)) + 
+  geom_bar(stat = "identity", 
+           fill = "indianred3", 
+           color = "black") +
+  geom_text(aes(label = pctlabel), 
+            vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Perforation", 
+       y = "Percent", 
+       title  = "Perforation Distribution")
+
+
+plotdata1 <- colon.data %>%
+  count(obstruct.factor) %>%
+  mutate(pct = n / sum(n),
+         pctlabel = paste0(round(pct*100), "%"))
+
+p02 <- ggplot(plotdata1, 
+       aes(x = reorder(obstruct.factor, -pct),
+           y = pct)) + 
+  geom_bar(stat = "identity", 
+           fill = "indianred3", 
+           color = "black") +
+  geom_text(aes(label = pctlabel), 
+            vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Obstruction", 
+       y = "Percent", 
+       title  = "Obstruction Distribution")
+
+plotdata2 <- colon.data %>%
+  count(adhere.factor) %>%
+  mutate(pct = n / sum(n),
+         pctlabel = paste0(round(pct*100), "%"))
+
+p03 <- ggplot(plotdata2, 
+       aes(x = reorder(adhere.factor, -pct),
+           y = pct)) + 
+  geom_bar(stat = "identity", 
+           fill = "indianred3", 
+           color = "black") +
+  geom_text(aes(label = pctlabel), 
+            vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Adherence", 
+       y = "Percent", 
+       title  = "Adherence Distribution")
+
+plotdata3 <- colon.data %>%
+  count(differ.factor) %>%
+  mutate(pct = n / sum(n),
+         pctlabel = paste0(round(pct*100), "%"))
+
+p04 <- ggplot(plotdata3, 
+       aes(x = reorder(differ.factor, -pct),
+           y = pct)) + 
+  geom_bar(stat = "identity", 
+           fill = "indianred3", 
+           color = "black") +
+  geom_text(aes(label = pctlabel), 
+            vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "differentiation", 
+       y = "Percent", 
+       title  = "Differentiation Distribution")
+
+plotdata4 <- colon.data %>%
+  count(extent.factor) %>%
+  mutate(pct = n / sum(n),
+         pctlabel = paste0(round(pct*100), "%"))
+
+p05 <- ggplot(plotdata4, 
+       aes(x = reorder(extent.factor, -pct),
+           y = pct)) + 
+  geom_bar(stat = "identity", 
+           fill = "indianred3", 
+           color = "black") +
+  geom_text(aes(label = pctlabel), 
+            vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "differentiation", 
+       y = "Percent", 
+       title  = "Extent Distribution")
+
+
+plotdata5 <- colon.data %>%
+  count(mort_5yr) %>%
+  mutate(pct = n / sum(n),
+         pctlabel = paste0(round(pct*100), "%"))
+
+p06 <- ggplot(plotdata5, 
+       aes(x = reorder(mort_5yr, -pct),
+           y = pct)) + 
+  geom_bar(stat = "identity", 
+           fill = "indianred3", 
+           color = "black") +
+  geom_text(aes(label = pctlabel), 
+            vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Mortality 5 Years", 
+       y = "Percent", 
+       title  = "5 Years Mortality Distribution")
+
+plotdata6 <- colon.data %>%
+  count(node4.factor) %>%
+  mutate(pct = n / sum(n),
+         pctlabel = paste0(round(pct*100), "%"))
+
+p07 <- ggplot(plotdata6, 
+       aes(x = reorder(node4.factor, -pct),
+           y = pct)) + 
+  geom_bar(stat = "identity", 
+           fill = "indianred3", 
+           color = "black") +
+  geom_text(aes(label = pctlabel), 
+            vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "4 Nodes Affected", 
+       y = "Percent", 
+       title  = "4 Nodes Distribution")
+
+p08 <- ggplot(colon.data, aes(x=time.years)) + 
+  geom_density() + geom_vline(aes(xintercept=mean(time.years)),
+            color="blue", linetype="dashed", size=1)+
+  labs(x = "Density", 
+       y = "time in years", 
+       title  = "Time in Years")
+            
 pacman::p_load("Rmisc")
-multiplot(p01,p02,p03,p04, cols=1)
-multiplot(p05, p06, p07, p08, cols =1)
-  
+library(gridExtra)
+grid.arrange(p16,p17, top = "Demographic Distribution",
+            layout_matrix = matrix(c(1,2), ncol=2, byrow=TRUE)) 
+grid.arrange(p14,p15, top = "Treatment",
+            layout_matrix = matrix(c(1,2), ncol=2, byrow=TRUE)) 
+grid.arrange(p01,p02,p03,p04, top = "Tumor Descriptors",
+            layout_matrix = matrix(c(1,2,3,4), ncol=2, byrow=TRUE)) 
+grid.arrange(p05,p06,p07,p08, top = "Tumor Descriptors",
+            layout_matrix = matrix(c(1,2,3,4), ncol=2, byrow=TRUE)) 
 ``` 
-
-#### Findings
-
-<div class = "blue">
-All of these charts show visually, that there is a fairly even distribution within the two treatment groups.  They also show that, within this sample:  
-    * Almost all tumors did not perforate the colon.  
-    * Majority of tumors did not obstruct the colon.  
-    * Majority of tumors did not adhere to nearby organs.  
-    * Majority of tumors had a histological differentiation of moderate.  
-    * Majority of the extent of localized tumor spread was to the serosa (lining) of the colon.  
-    * Slightly more subjects were alive at the five year mark.
-    * Majority of the age within the sample was over 60 years old.  
-    * Majority of the tumors did not effect more than four lymph nodes.  
-</div>
 
 # Splitting into Training and Testing Samples
 <div class = "blue">
