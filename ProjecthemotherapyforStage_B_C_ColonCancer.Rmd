@@ -21,8 +21,7 @@ output:
 knitr::opts_chunk$set( echo=TRUE, warning=FALSE, message=FALSE, error=FALSE, comment = NA )
 options(max.print = 10000)
 options(scipen = 999)
-pacman::p_load(DT, kableExtra, magrittr, ggplot2, wrapr, generics, car, psych,xray , ggplot2, texreg, dplyr, wrapr,  sjPlot, knitr, DescTools, Hmisc, corrplot, ggcorrplot, qgraph, corrr, tidyverse,sjmisc, sjlabelled, sjstats, sjPlot,  forcats, kableExtra, captioner, unikn, captioner, car, hrbrthemes, relaimpo, plotflow, tidyverse, dials, tidymodels, ggeffects, haven, glmmTMB, broom, magick, BiocManager, vtree, pscl)
-remotes::install_github('rstudio/rmarkdown')
+pacman::p_load(DT, kableExtra, magrittr, ggplot2, wrapr, generics, car, psych, xray, texreg, dplyr, wrapr,  sjPlot, knitr, DescTools, Hmisc, corrplot, ggcorrplot, qgraph, corrr, tidyverse, sjmisc, sjlabelled, sjstats, forcats, kableExtra, captioner, unikn, captioner, hrbrthemes, relaimpo, plotflow, tidyverse, dials, tidymodels, ggeffects, haven, glmmTMB, broom, magick, BiocManager, vtree, pscl, qgraph, unikn, car, MASS, hrbrthemes, plotflow)
 ```   
 ```{r "colorize", echo=FALSE, results="hide"}
 colorize <- function(x, color) {
@@ -127,7 +126,6 @@ Below tree diagram shows:
 library(vtree)
 vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
 ```
-
 ## Converting Variables 
 <div class = "blue">
 Below, character variables are converted to factors, integers are converted to numbers, and the observation arm is filtered out.  This is done to assist with our analysis.  The removal of the observation group done to primarily focus on the comparison between adjuvant therapy and the current standard at that time, and to also focus on other factors - aside from treatment - that may effect survival within that group.
@@ -141,11 +139,8 @@ colon.data$mort_5yr <- fct_relevel( (colon.data$mort_5yr) , c("Died", "Alive" ) 
 library(Hmisc)
 describe(colon.data)
 ```
-
 ## Missing Values and Treatment
-
 In this section, the total count of missing values (NA) in each column is identified and treated *Note* - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.
-
 ### Total Count of Missing Values>
 <div class = "blue">
 The summary table below provides total count of NA for all the variables along with other information like minimum value, Max.value, Mean, Median etc. From the table below it is identified 6 of the variables contain NAs that need to be treated for further analysis.
@@ -160,9 +155,7 @@ MD[c(3:14,27,29:30)] %>%
 <div class = "blue">
   
 It is noted that within this dataset, that there are already factor versions of the variables.  To be sure not to double count, below is a summary of the NAs:
-
 * Below are the columns identified with NA:
-
    * obstruct - 15
    * nodes - 15
    * differ - 16
@@ -171,16 +164,13 @@ It is noted that within this dataset, that there are already factor versions of 
    * mort_5yr - 8
    
 The total of NAs is 79 - which is roughly 12% of the filtered sample of 614.  We chose to omit these values due to the large sample size.  There was worry that if we imputed this data - which is mostly two-level factors - that there may be a large margin of error and it may produce bias in our model.
-
 </div>
-
 ```{r}
 library(dplyr)
 colon.data <- colon.data %>%
 filter(rx!="Obs") %>%
 na.omit()
 ```
-
 # Investigating the Cleaned Data
 ## Visual Representation 
 The below table and vtree give a quick glance at the cleaned data
@@ -190,38 +180,30 @@ colon.data %>% datatable()
 <div class = "blue">
  
 Below tree diagram shows:
-
 * Total number of observations in the Cleaned Dataset- 551
 * 51% of the observations are for patients who were given levamisole (Lev).
 * 49% were given levamisole + fluorouracil (Lev +5FU)
 * There are almost equal distribution of males and females in the study. There are more females on the Lev+FU treatment.
 * Majority of the study population is from +60 age group followed by 40-59 years and a very small propoortion belong to <40 years age group. There is approximately equal distribution of the population in the 3 age group categories for both the treatments.
-
 </div>
-
 ```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2: Tree Diagram of Cleaned Colon Dataset"}
 library(vtree)
 vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
 ```
-
 ## Preliminary Statistical Findings
 <div class = "blue">
 Below are the preliminary findings based on the graphs and the summary below.
 The cleaned, recoded sample has total of 551 observations.
 Some preliminary observations for the variables used in the analysis below:
-
 **Demographic Distribution**
-
 * Sex - A fairly equal distribution between Male and Female.  
 * Age Group - Majority of the observation belongs to 60+ age group.
       
 **Treatment Indicators**
-
 * Treatment - 15 more observations in the Levimasole group.  
 * Time to Treatment (surg) - Majority of observations had a shorter time to treatment - meaning within 7 to 20 days. 
       
 **Tumor Descriptors**
-
 * Obstruction - Majority of the observations have no obstructive tumors.  
 * Perforation - Majority of the observations is "No" while a very few observations belong to "Yes".  
 * Adherence - Majority of the observation is "No" for adherence to nearby organs.  
@@ -234,9 +216,7 @@ Some preliminary observations for the variables used in the analysis below:
 ```{r echo=TRUE, message=FALSE, error=FALSE, warning=FALSE}
 summary(colon.data)
 ```
-
 ### Visualizing Data {-}
-
 Below graphs are plotted to understand the Demographic distribution, treatment distribution, time to treatment and the tumor descriptors.
 ```{r echo=TRUE, message=FALSE, warning=FALSE, error=FALSE, fig.width=8, fig.height=8, comment=NA}
 library(ggplot2)
@@ -463,11 +443,9 @@ grid.arrange(p01,p02,p03,p04, top = "Tumor Descriptors",
 grid.arrange(p05,p06,p07,p08, top = "Tumor Descriptors",
             layout_matrix = matrix(c(1,2,3,4), ncol=2, byrow=TRUE)) 
 ``` 
-
 # Splitting into Training and Testing Samples
 <div class = "blue">
 In order to do further analysis, we have to create training and testing samples  The training sample will be used to create an equation to show the impact that tumor characteristics and treatment will have on life expectancy.  The test sample is used to test that equation for it's accuracy.
-
 ```{r , "sample_splitting", fig.width=5, fig.height=5}
 pacman::p_load(rsample)
 set.seed(78)
@@ -476,7 +454,6 @@ train <- training(train_test_split)
 test <- testing(train_test_split)
 (samp <- dim(train_test_split))
 ```  
-
 After splitting the complete sample of `r samp[3]` subjects, `r samp[1]` were selected for the training sample and `r samp[2]` for the testing (or holdout) sample.  
 </div>
 # Logistic Regression using Five Year Mortality  
@@ -739,23 +716,25 @@ The extent of the spread, the age group and the number of nymph nodes are the ma
 Even so, the model can not be used reliably to determine the 5 year life status of a patient; its hit-ratio doesn't exceed 67%.
 </div>
 
-# Stepwise Regression on Time Until Death in Days
-## Multiple Regression Using All Predictor Variables
+# Multiple regression using all predictor variables.
+<div class = "blue">
+A stepwise regression is also use to analyze the impact that treatment and other factors have on life expectancy.  We use the same independent factors as the logistic regression.  Using stepwise (or multiple linear) regression requires that the dependent variable is numeric - which is why we are using 'time.years' instead of the factor mort-5yr.  This is dont to compare the results and add or remove validity from the logistic regression.  Moreover, it helps in determining the overall fit of the model and the relative contribution (or strength) of each of the independent variable in explaining the variance. 
+
+The hypotheses for this is as follows:
 <p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
 $H_o$: coefficient  = 0, a risk of a Type 1 error, = $\alpha = 0.05$  
-$H_a$: coefficient ≠ 0  
+i.e., no statistically significant relationship between each independent variable and the dependent variable.  
+$H_a$: coefficient ≠ 0, a risk of a Type 1 error, = $\alpha = 0.05$  
+.e., significant relationship between each independent variable and the dependent variable.
 </p>
-
+</div>
 ```{r ,  fig.width=5, fig.height=5, comment=NA}
 RegModel.1 <- 
   lm(time.years ~ rx + sex + age + obstruct + perfor + adhere + differ + extent+surg+loccomp+node4,
    data=colon.data)
-```
-```{r}
-library(sjPlot)
 tab_model(
  RegModel.1 ,
-  title = "Regression Model of time.years (based on full sample) ",
+  title = "Regression Model of time.years (based on full sample)",
   show.stat = TRUE,
   digits = 3,
   string.stat = "t-value",
@@ -771,184 +750,56 @@ tab_model(
   )
 )
 ```
+<div class = "blue">
+In the table above, predictor variables 'extent'and 'node4' have coefficients that are significantly different (p<0.05) from zero as shown by the p-values (p(sig)). 
+Other variables have coefficients that are not significantly different from zero indicating no significant relationship between each independent variable and the dependent variable.
+</div>
+<br>
+This can also be displayed graphically.
+<br>
+<div class = "row">
+<div class = "col-md-4">
+<br>
+<div class = "blue">
+This graph shows those variables whose coefficients are significantly (p<0.05) different from zero in red and those not significantly different from zero in blue.
 
+In this case, Variables 'rx', 'sex','obstruct', 'perfor', 'adhere','differ', 'surg',and 'loccomp' are shown in blue as they have coefficients that are not significantly different from zero (p>0.05).  
 
+Variables shown in red include,'extent' and 'node4'- which have  coefficients that are significantly different from zero (p<0.05).  This indicates a statistically significant relationship between each independent variable and the dependent variable. 
+</div>
+</div>
+<div class = "col-md-8">
 ```{r plotreg, message=FALSE, echo=TRUE, fig.width=4, fig.height=5}
 plotreg(RegModel.1, custom.model.names ="Regression of time.years")
 ```
-
-## Reducing the model to those variables able to predict well
-
-There are two primary ways to reduce the size of a predictive model based on statistical analysis: 
-
-__1__ Delete those variables that have p-values greater than 0.05; 
-
-__2__ Delete those variables having dangerously high multicollinearity.
-
-
-## Investigation of Multicollinearity within Predictor Variables
-
-<div class = "blue">
-Multicollinearity is the occurrence of high intercorrelations among two or more independent variables in a multiple regression model.
-Multicollinearity in a multiple regression model indicates that collinear independent variables are related in some fashion, although the relationship may or may not be casual.
-
-Before beginning the regression, the correlations below may provide some insights.
-__The correlation coefficient__ indicates the strength of the linear relationship that might be existing between two variables.
+</div>
 </div>
 
-```{r fig.width=9, fig.height=9}
-rr <- colon.data[c(4, 6,7,8,9,10,11,12,13,14,15,29,31,32)]
-library(corrplot)
-M <- cor(rr) 
-corrplot.mixed(M, upper = "ellipse",lower='number')
-```
-
-## Relative Importance of Predictors (Drivers)
-
-The table below presents all of the relative importance metrics from ‘relaimpo’. 
- 
-The second block gives the coefficients when 1 predictor is entered, 2 are entered through to all 11 predictors.
-```{r}
-RegModel.1 <- 
-lm(time.years~rx + sex + age + obstruct + perfor + adhere + differ + extent+surg+loccomp+node4,
-   data=colon.data)
-library(car)
-(vf <- vif(RegModel.1) )
-```
-
-```{r}
-library(relaimpo) 
-imp.lm<-calc.relimp(RegModel.1, type=c("lmg"), rela = TRUE)
-imp.lm
-```
-
-
-```{r}
-rel.lmg<- calc.relimp(RegModel.1, type="lmg")
-pm<- data.frame(rel.lmg$lmg, rel.lmg$lmg.rank)
-pm<-pm[order(rel.lmg$lmg.rank),]
-pm <-data.frame(Features=rownames(pm), pm, row.names=NULL)
-colnames(pm) <- c("Features", "Importance", "Rankings")
-is.num <- sapply(pm, is.numeric)
-pm[is.num] <- lapply( pm[is.num], round, 3)
-tab_df(pm)
-```
-
-
-The tables above answer the question of 
-
-__What are the key drivers of mort_5yr:	5 years life status ?__
-
-
-## Plot: Key Drivers of mort_5yr:	5 years life status
-
-```{r}
-theme_set(  theme_bw( ))
-ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
-  geom_bar(stat="identity", fill="lightblue", colour="black") + 
-  coord_flip() + 
-  ggtitle("Key Drivers of time.years") +
-  geom_text(aes(label=format(Importance, digits=2), size=0.5, hjust=1))+
-  theme(legend.position="none") +
-  theme(axis.text.y=element_text(face="bold", color="black",size=12))+
-  theme(plot.title=element_text(
-                                face="bold", color="black",size=18))+
-  theme(axis.title.x=element_text(
-                                  face="bold", color="black",size=14))+
-  theme(axis.title.y=element_text(
-                                 face="bold", color="black",size=14))+
-  labs(y= "Relative impacts of Variables", x= "Variables")
-```
-
-
 ## Reducing the model to significant predictors
+<div class = "blue">
+In the current regression model (RegModel.1), the independent variables 'rx[T.Lev+5FU]', 'rx[T.Obs]', 'sex','obstruct', 'perfor', 'adhere','differ', 'surg',and 'loccomp' variables have p-values greater than 0.05.  Since these variables would not be able to predict changes in the values of 'time.years', the elimination of statistically insignificant variables will increase the precision of the model. 
+</div>
 
-
-# Stepwise Regression
-
+## Stepwise Regression
+<div class = "blue">
+We have applied the statistical significance criterion automatically with an algorithmic procedure called stepAIC() from the 'MASS' package. The purpose of the statistical significance criterion is to find the best model that has a set of independent variables that significantly influence the dependent variable. The AIC at the top of each regression compares the quality of a set of statistical models to each other. The model which has lower AIC value is the best model.  AIC will choose the best model from a set, but it won’t say anything about absolute quality. Therefore, once the best model has been selected, a hypothesis test will be run to figure out the relationship between the variables in the model selected and the time in years until death ('time.years').
+</div>
 ```{r}
 library(MASS)  
 step <- stepAIC(RegModel.1, direction="both")
 step
 ```
 
+## Testing the model from the 'stepAIC' function
 
-The stepwise regression (or stepwise selection) consists of iteratively adding and removing predictors, in the predictive model, in order to find the subset of variables in the data set resulting in the best performing model, that is a model that lowers prediction error.
-
-__Stepwise selection (or sequential replacement), which is a combination of forward and backward selections___. It starts with no predictors, then sequentially adds the most contributive predictors (like forward selection). After adding each new variable, any variables that no longer provide an improvement in the model fit are removed. (like backward selection). 
-It stops when a model is obtained where all predictors are statistically significant.
-
-The AIC at the top of each regression is the ___Akaike Information Criterion___. It compares the quality of a set of statistical models to each other. We only compare AIC value whether it is increasing or decreasing by adding more variables. Also in case of multiple models, the one which has lower AIC value is preferred.
-
-However, AIC will choose the best model from a set, it won’t say anything about absolute quality.Therefore, once the best model has been selected, a hypothesis test will be run to figure out the relationship between the variables in the model selected and mort_5yr: 5 years life status
-
-
-<div class = "blue">
-
-However, AIC will choose the best model from a set, it won’t say anything about absolute quality.Therefore, once the best model has been selected, __a hypothesis test__ will be run to figure out the relationship between the variables in the model selected and LifeExpectancy.
-
-</div>
-
-
-
-__Taking the coefficients from the so-called best model from the stepwise process and using them as the final model__
-
-## Stating and testing the Hypothesis for the variables (rx.factor + age.factor + differ.factor + extent.factor) in the model selected (best model)
-
-__$H_o$__: the coefficients of the variables in the the best model are equal to zero, statistically, at a risk of a Type 1 error, = $\alpha = 0.05$
-
-__$H_a$__: the coefficients of the variables in the the best model are NOT equal to zero, statistically, at a risk of a Type 1 error, = $\alpha = 0.05$
-
-```{r}
-tab_model(step,
-  title = "Regression of time.years on 'best' stepwise model",
-  show.stat = TRUE,
-  digits = 3,
-  string.stat = "t-value",
-  string.p = "p (sig)",
-  show.fstat = TRUE,
-  show.dev = TRUE,
-  show.aic = TRUE,
-  CSS = list(
-    css.depvarhead = 'color: darkgreen;',
-    css.centeralign = 'text-align: left;',
-    css.firsttablecol = 'font-weight: bold;',
-    css.summary = 'color: blue;'
-  ))
-```
-
-## Plotting the model coefficients (the best model with select 4 variables and the original model with all 8 predictor variables)
-
+We run another linear model with the results from the 'stepAIC' function in order to assess its fit.
 ```{r ,  fig.width=5, fig.height=5, comment=NA}
 RegModel.2 <- 
-  lm(time.years~ rx + age + differ + extent + loccomp + node4,
-   data=colon.data)
-```
-```{r mlr,  fig.width=9, fig.height=9, comment=NA}
-plot_models(
-  RegModel.1,RegModel.2 ,
-  title = "Regression models with 4 predictor variables and with 8 predictor variables",
-  show.values = TRUE,
-  show.intercept = TRUE,
-  show.p = TRUE,
-  m.labels = c( "original model", "best model"),
-  p.shape = TRUE,
-  grid = FALSE,
-  vline.color = "gray",
-  ci.lvl = 0.95
-) 
-```
-
-
-## The model reduced to only variables having coefficients with significant differences from zero.
-
-```{r ,  fig.width=5, fig.height=5, comment=NA}
-RegModel.2 <- 
-  lm(time.years ~ rx + age + differ + extent + loccomp + node4,
+  lm(time.years ~ rx + extent + loccomp + node4,
    data=colon.data)
 tab_model(
   RegModel.1,RegModel.2 ,
-  title = "Regression models with 4 predictor variables and with 8 predictor variables",
+  title = "Regression models with 6 predictor variables and with 11 predictor variables",
   show.stat = TRUE,
   digits = 3,
   string.stat = "t-value",
@@ -967,33 +818,28 @@ tab_model(
 ```
 
 
+___RegModel.2 model: The model reduced to only variables having coefficients with significant differences from zero___
+<div class = "blue">
+The RegModel.2 model above (model to the right), obtained through the stepwise regression (or stepwise selection) has the variables 'rx','extent','loccomp' and 'node4' have coefficients that are significantly different (p<0.05) from zero.  Hence, the null hypotheses, which assume no relationships between the variables and the dependent variable ('time.years'), for these variables would be rejected. 
 
-The RegModel.2 model above (model to the right), obtained through the stepwise regression (or stepwise selection) has the predictor variables with non-significant p-values (<0.05) that can effectively explain the response variable . 
-.
+Moreover, The adjusted R2(0.145), coefficient of multiple determination, is slightly higher in the original model.  The AIC is smaller at 2469.4 - showing that it has a better fit.
 
-Hence __RegModel.2 model__ above (model to the right) and shown in the graph below will be our __‘final’ model with predictor variables rx.factor + age.factor + differ.factor + extent.factor__.
-
-
-<br><br> This graph shows those variables whose coefficients are significantly (p<0.05) __different from zero___ in __red__ and those __not significantly different from zero__ in __blue__.
-
-This graph shows all variables in red, that have coefficients, significantly (p<0.05), different from zero. Since variables with coefficients not significantly different from zero have not been included hence there are no blue dots in the graph. 
-
-
-```{r , message=FALSE, echo=TRUE, fig.width=4, fig.height=5}
-plotreg(RegModel.2, custom.model.names ="Regression models of time.years with significant predictor variables")
-```
-
-
-## Relative importance of the reduced model on all observations
-
+This will be considered our final model and we will continue on with testing.
+</div>
+## Relative Importance of Predictors (Drivers) in the final model
+<div class = "blue">
+The table below presents all of the relative importance metrics from ‘relaimpo’. 
+The first block in the Table provides the 'lmg' metric for each variable. 
+The second block gives the coefficients when 1 predictor is entered through to all 4 predictors. lmg metric assesses the relative importance of each of the predictors to the relationship (between the dependent variable and the predictor variables) both in terms of explanation and for prediction.
+</div>
 ```{r}
 library(relaimpo) 
 imp.model.2<-calc.relimp(RegModel.2,type=c("lmg"),rela = TRUE)
 imp.model.2
 ```
-
-## Relative Importance of Predictors (Drivers) in the new/final model
-
+<div class = "blue">
+The below table and graph show the variables which have the largest impact on 'time.years'
+</div>
 ```{r}
 rel.lmg<- calc.relimp(RegModel.2, type="lmg", rela=TRUE)
 pm<- data.frame(rel.lmg$lmg, rel.lmg$lmg.rank)
@@ -1003,11 +849,10 @@ colnames(pm) <- c("Features", "Importance", "Rankings")
 is.num <- sapply(pm, is.numeric)
 pm[is.num] <- lapply( pm[is.num], round, 3)
 tab_df(pm)
-```
-```{r}
+
 theme_set(  theme_bw( ))
 ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
-  geom_bar(stat="identity", fill="darkorange1", colour="black") + 
+  geom_bar(stat="identity", fill="blue", colour="black") + 
   coord_flip() + 
   ggtitle("Key Drivers of 'time.years (best model)") +
   geom_text(aes(label=format(Importance, digits=2), size=0.5, hjust=1))+
@@ -1020,37 +865,34 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
   theme(axis.title.y=element_text(
                                  face="bold", color="black",size=14))+
   labs(y= "Relative impacts of Variables", x= "Variables")
+
 ```
+<div class = "blue">
+On investigating the relative importance of the variables in the final model, it can be concluded that  __node4': more than 4 positive lymph nodes'__, has the greatest impact on years until death. While 'extent'(Extent of local spread) is the second most important driver.
+</div>
 
-
-## Multicollinearity in the reduced model
-
-Variance inflation factor (VIF): The measure of multicollinearity among the independent variables in a multiple regression model.
-__Table:Variance inflation factor (VIF)__ 
+## Testing Multicollinearity Using Variance inflation factor (VIF)
+<div class = "blue">
+Multicollinearity in a multiple regression model indicates that collinear independent variables are related in some fashion, although the relationship may or may not be casual.  This reduces the precision of the estimate coefficients, which weakens the statistical power of the regression model. Hence, we may not be able to trust the p-values to identify independent variables that are statistically significant.  This is using the same method as was done in Section 5 for Logistic Regression.
+</div>
 
 ```{r}
 library(car)
 (vf <- vif(RegModel.2) )
 ```
-
-The smallest possible value of VIF is 1 (absence of multicollinearity). As a rule of thumb, a VIF value that exceeds 4 indicates a problematic amount of collinearity amongst the variables.
-
-## Building a regression model using the training sample data. Reducing the model to those variables having coefficients significantly different from zero. Explaining the process and the final model.
-
-The model will attempt to learn the relationship on the training data and be evaluated on the test data.
-Cross-validation is primarily used in to estimate the skill of a model on unseen data. That is, to use a limited sample in order to estimate how the model is expected to perform in general when used to make predictions on data not used during the training of the model.
-Overfitting and underfitting is a fundamental problem that trips up even experienced data analysts. The developed model may look great, but the problem is if a testing set is never used, the model is nothing more than an overfit representation of the training data. Thus the model does not work when someone else tries to apply it to a new data.
-
-___How good is the model?___
-
-I’ve built a model, investigated statistical properties, considered the relative importance of the predictors and reduced the model to those most important predictors that are significantly related to the response variable. Now, we need to further investigate model quality and usability.Quality of regression models can be judged in many ways. In this case it will be done by splitting the dataset randomly into a training sample (70% of total observations) on which the model will be re-developed and a testing sample, sometimes called the holdout sample, on which the quality of predictions is tested.
-
-## Building a regression model using the training sample data.
+<div class = "blue">
+In our final model (evident from the VIF table above), VIF values for all the predictor variables are well below the threshold level of 4. Hence, it may be concluded that multicollinearity does not affect the final model in predicting the outcome of the dependent variable.
+</div>
 
 
+## Building a Regression Model Using the Training Sample Data.
+
+<div class = "blue">
+We use the same training sample as in the Logistic Regression in hopes to acheive the same results.
+</div>
 ```{r }
-model.tr<-lm(time.years~ rx + age + differ + extent + loccomp +  node4, train)
-# summary(model.tr) # remove the hash-tag at the beginning of this line to see the standard summary
+model.tr<-lm(time.years~ rx + extent + loccomp +  node4, train)
+summary(model.tr) 
 tab_model(
   model.tr,
   title = "Regression models of time.years using the Training Sample",
@@ -1069,41 +911,36 @@ tab_model(
   )
 )
 ```
+<div class = "blue">
+Within the training sample, it is noted that the same predictor variables are noted as significant as they were in the total sample.
+</div>
 
+## Reducing the model, using Stepwise Regression, to those variables having coefficients significantly different from zero
 
-### Stating and testing the Hypothesis for the variables in the __"training_model"__
-
-__$H_o$__: the coefficients of the variables in the the training_model are equal to zero, statistically, at a risk of a Type 1 error, = $\alpha = 0.05$
-
-__$H_a$__: the coefficients of the variables in the the training_model are NOT equal to zero, statistically, at a risk of a Type 1 error, = $\alpha = 0.05$
- 
-
-### Reducing the model, using Stepwise Regression, to those variables having coefficients significantly different from zero
-
-Since the variable 'Rural' has coefficient that __is  significantly not different from zero (p (sig) = 0.058 > 0.05)__. Hence __$H_o$__ cannot be rejected in this case. 
-
-The stepwise regression was used to find the "best training model" with subset of predictor variables that are statistically significant.
+Stepwise regression was used to find the best training model with subset of predictor variables that are statistically significant.
 
 ```{r}
 library(MASS)  
 step <- stepAIC(model.tr, direction="both", trace = TRUE)
 step
 ```
-In case of current stepwise regression for LifeExpectancy using the Training Sample, the model with variables 'BirthRate', 'GDP' , 'Health' , 'HIV' , 'Rural' has been chosen as the best training model. 
-The “plotreg()” function is used below to present the coefficient estimates based on the training sample. The graphs show that, while the intercept is not significantly different from zero, all the five predictor variables significantly help to improve prediction of LifeExpectancy. 
+```{r include=FALSE}
+model.tr<-step
+```
+<div class = "blue">
+In case of current stepwise regression for time.years using the Training Sample, the model with variables 'extent', 'loccomp', and 'node4' have been chosen as the best training model. 
+
+This is displayed graphically below using the plotreg() function.
+</div>
 ```{r}
 plotreg(model.tr, custom.model.names =" Regression models of time.years using the Training Sample")
 ```
-
 ## Reporting on the relative importance of those variables that remain in the model with a table, graph and in words. 
-
+We again test the relative importance of our predictor variables to see their importance.  This is shown in a chart and a graph as well.
 ```{r}
 library(relaimpo) 
 imp.model.3<-calc.relimp(model.tr,type=c("lmg"),rela = TRUE)
 imp.model.3
-```
-
-```{r}
 rel.lmg<- calc.relimp(model.tr, type="lmg", rela=TRUE)
 pm<- data.frame(rel.lmg$lmg, rel.lmg$lmg.rank)
 pm<-pm[order(rel.lmg$lmg.rank),]
@@ -1112,23 +949,11 @@ colnames(pm) <- c("Features", "Importance", "Rankings")
 is.num <- sapply(pm, is.numeric)
 pm[is.num] <- lapply( pm[is.num], round, 3)
 tab_df(pm)
-```
-
-
-___lmg calculates the relative contribution of each predictor to the R square with the consideration of the sequence of predictors appearing in the model___.
-
-Using the 'lmg' metric, the tables above answer the question of __What are the key drivers of mort_5yr:5 years life status in the training model__.
-
-___Plot: Key Drivers of time.years___
-
-The key drivers of variable time.years can be visually represented using the following diagram. 
-
-```{r}
 theme_set(  theme_bw( ))
 ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
-  geom_bar(stat="identity", fill="lightgreen", colour="black") + 
+  geom_bar(stat="identity", fill="blue", colour="black") + 
   coord_flip() + 
-  ggtitle("Key Drivers of time.yearsin Training Model") +
+  ggtitle("Key Drivers of time.years in Training Model") +
   geom_text(aes(label=format(Importance, digits=2), size=0.5, hjust=1))+
   theme(legend.position="none") +
   theme(axis.text.y=element_text(face="bold", color="black",size=12))+
@@ -1139,47 +964,48 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
   theme(axis.title.y=element_text(
                                  face="bold", color="black",size=14))+
   labs(y= "Relative impacts of Variables", x= "Variables")
+
 ```
-
-
-## Reporting on the residuals and test if the distribution of the residuals is normal. Why is this important? 
-
-## The residuals
+<div class ="blue">
+It is noted once again that'node4' has the highest lmg value, followed by the 'extent', "loccomp", then 'rx' when assessing their impact on 'time.years'. 
+</div>
+## Reporting The Training Residuals and Testing Their Distribution
+Below is a table that shows the actual value of time.years for the sample, followed by the predicted value based on our model, then the residuals - or difference between them.
 ```{r}
-predicted <- predict(model.tr, newdata=test  )
-actual <- test$time.years # actual Q3a attitudes for testing sample
+predicted <- predict(model.tr, newdata=train  )
+actual <- train$time.years # actual Q3a attitudes for testing sample
 residual <- predicted - actual   
 x<- as.data.frame(cbind(actual, predicted, residual)) 
-```
-```{r}
 library(kableExtra)
 head(x, 10) %>%
   kable("html", align = 'clc', digits=2, col.names=c( "actual", "predicted", "residuals")) %>%
     kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
     footnote(general = "The actual and predicted values of time.years and the residuals for the first 6 Patients.")
 ```
+<div class ="blue">
+In the table above, it can be noticed (from the first row) that the actual time.years'(years until death), for the first patient has the value of 8.46. The value of that patient’s years until death is predicted to be 5.18 by the final training model equation using the training data sample.
 
+The difference also known as the residual or error of prediction is -3.28 meaning the equation's result was lower.  
+</div>
 ## Testing if the distribution of the residuals is normal
+<div class ="blue">
+Prediction intervals are calculated based on the assumption that the residuals are normally distributed. Moreover, while building a optimally fitting linear model, it is assumed that the relationship is linear, and that the errors, or residuals, are simply random fluctuations around the true line. Non-normality of the residuals indicates that the errors the model makes are not consistent across variables and observations (i.e. the errors are not random). Hence model inference (confidence intervals, model predictions) may not be valid, affecting the reliability and usability of the model.
 
-__Stating Null and Alternative Hypothesis:__ 
-
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
 $H_o$: Distribution of residuals is Normal , risk of a Type 1 error = $\alpha = 0.05$.   
-
 $H_a:$ Distribution of residuals is not Normal
-
+</p>
+</div>
 ```{r  fig.width=5, fig.height=5 }
 library("car")
 qqPlot(model.tr, main="QQ Plot") 
 ```
-
-
-The plot above shows the distribution of the residuals against the expected normal distribution. For normally distributed data, observations should lie approximately on the reference line. Since, there are some (approximately 4) outliers in the data (points at the ends of the line distanced from the bulk of the observations and the reference line) the residuals may not be normally distributed. Hence, further investigation is required. 
-
-*******
+<div class ="blue">
+The plot above shows the distribution of the residuals against the expected normal distribution. For normally distributed data, observations should lie approximately on the reference line. In the Q-Q Plot above, the studentized Residuals match the theoretical quantiles only at the median. The samples seem to be symmetric around the median. Q–Q plot is "S" shaped, indicating that one of the distributions is more skewed than the other, or that one of the distributions has heavier tails than the other. Hence residuals may not be normally distributed. Hence, further investigation is required.
 
 In the density plots below, we attempt to visualize the underlying probability distribution of the residuals by drawing an appropriate continuous curve. 
 Residuals do not seem to be normally distributed as residuals are not symmetric about the mean and show bimodality. It should be further investigated by the conducting Normality testing.
-
+</div>
 ```{r fig.height=5, fig.width=5, message=FALSE, warning=FALSE, comment=NA, include=FALSE}
 d <- densityPlot(residual)
 ```
@@ -1188,22 +1014,19 @@ plot(d, main=" Density Plot Residuals")
 polygon(d, col="orange", border="green")
 ```
 
-__Testing the hypothesis using Shapiro-Wilk’s method__
+### Testing the hypothesis using Shapiro-Wilk’s method
 
 Shapiro-Wilk’s method has been used to test the normality of Residuals, considering a significance level of 0.05. 
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE, fig.width=5, fig.height=5, comment=NA}
 shapiro.test((residual))
 ```
+<div class ="blue">
+From the Shapiro-Wilk normality test, we have got the p value of 0.0002281. Assuming an alpha of 0.05, since the p-value is greater than 0.05, null hypothesis (that distribution of residuals is Normal) is not rejected. Hence it may be concluded that the residuals are ___normally distributed___
 
+Hence it can be concluded that the regression model (model.tr) can explain/ predict that the trends in the dependent variable(time.years )
 
-
-## How Important Are Normal Residuals in Regression Analysis?
-
-Prediction intervals are calculated based on the assumption that the residuals are normally distributed. If the residuals are non-normal, the prediction intervals may be inaccurate, affecting the reliability and usability of the model.
-Moreover, while building a optimally fitting linear model, it is assumed that the relationship is linear, and that the errors, or residuals, are simply random fluctuations around the true line. If residuals are not (approximately) normally distributed (with a mean of zero), it can pinpoint potential issues with the model.
-
-## 2.e. Testing homoscedasticity and Stating hypotheses. 
+## Testing homoscedasticity and Stating hypotheses. 
 
 The assumption of homoscedasticity (meaning “same variance”) is central to linear regression models.  Homoscedasticity describes a situation in which the error term (that is, the “noise” or random disturbance in the relationship between the independent variables and the dependent variable) is the same across all values of the independent variables. 
 
@@ -1217,30 +1040,32 @@ $H_a:$ there are unequal or non-constant variances
 
 ```{r}
 pacman::p_load( "olsrr" )
-ols_test_breusch_pagan(RegModel.2)
+ols_test_breusch_pagan(model.tr)
 ```
 
+The Breush-Pagan test creates a statistic that is chi-squared distributed and for this data that statistic = 4.73163.
+The p-value is the result of the chi-squared test and the null hypothesis is rejected for p-value < 0.05. With the p value of 0.029 (<0.05), __the null hypothesis__ of homoskedasticity would be __rejected__.We should conclude that variance
+around regression line is not constant throughout its range.
 
+## Using the model based on the training sample to predict 'time.years'(years until death) for those in the testing sample. Assessing the quality of model based on the training sample when used on the testing sample data.  
 
-## Using the model based on the training sample to predict mort_5yr:5 years life status for those in the testing sample. How good is the model based on the training sample when used on the testing sample data? 
+## Predicting 'time.years' using the training model on the testing dataset
 
-## Predicting mort_5yr:5 years life status using the training model on the testing dataset
+“predict()” evaluates the model equation on values of 'age', 'differ', 'extent', 'loccomp','node4' for each respondent in the testing sample. While the model was based on those respondents in the training sample, the respondents in the testing sample did not contribute to those calculations and can be considered to be “fresh” or “new” subjects.
 
-“predict()” evaluates the model equation on values of rx.factor + age.factor + differ.factor + extent.factor for each respondent in the testing sample. While the model was based on those respondents in the training sample, the respondents in the testing sample did not contribute to those calculations and can be considered to be “fresh” or “new” subjects.
-
-__The code-chunk below predicts the mort_5yr:5 years life status for the test, or holdout, sample of patients using the model built on the training data.__
+__The code-chunk below predicts the time.years for the test, or holdout, sample of patients using the model built on the training data.__
 
 ```{r}
-model.te<-lm(time.years ~ rx + age + differ + extent + loccomp + node4, test)
+model.te<-lm(time.years ~ age + differ + extent + loccomp + node4, test)
 predicted.tr.te <- predict(model.tr, newdata=test  )
 predicted.tr.te
 actual <- test$ time.years # actual attitudes for the testing sample
 x<- as.data.frame(cbind(actual, predicted.tr.te)) 
 ```
 
-## Assessing the model based on the training sample when used on the testing sample data. 
+### Assessing the model based on the training sample when used on the testing sample data. 
 
-### Scatter plots of Predicted vs Actual
+#### Scatter plots of Predicted vs Actual
 
 ```{r,  fig.width=5, fig.height=5}
 scatterplot(x$predicted~x$actual, regLine=TRUE, smooth=FALSE, boxplots=FALSE, data=colon.data,col = "red", main = "Scatterplot of Predicted vs Actual " ,xlab = "Actual",ylab = "Predicted")
@@ -1248,57 +1073,35 @@ scatterplot(x$predicted~x$actual, regLine=TRUE, smooth=FALSE, boxplots=FALSE, da
 
 Scatter plots of Predicted vs Actual is used to understand how well the regression model makes predictions for different response values.  A perfect regression model has a predicted response equal to the true response, so all the points lie on a diagonal line. The vertical distance from the line to any point is the error of the prediction for that point. A good model has small errors, and so the predictions are scattered near the line.
 
-Hence, it may be concluded that the model has a weak Goodness of fit since most of the points are foggy or dispersed (away from the diagonal line). 
+Hence, it may be concluded that the model has a weak Goodness of fit since most of the points are foggy or dispersed (away from the diagonal line).
+
+From this scatter plot, it can also be inferred that the residuals are heteroskedastic. This means that the variance of the error is not constant across various levels of the dependent variable. As a result, the standard errors of regression coefficients are unreliable and may be understated.
 
 The analysis above, further mandates the assessment of goodness of the model based on the training sample when used on the testing sample data. 
 
-### Correlation between actual and predicted values of the dependent variable, Life Expectancy
+## Correlation between actual and predicted values of the dependent variable time.years
 
 ___Stating the Hypothesis___
 
-Ho: correlation = 0 i.e., actual and predicted values of the dependent variable, Life Expectancy, are __statistically independent__, a risk of a Type 1 error, = α=0.05
+Ho: correlation = 0 i.e., actual and predicted values of the dependent variable, time.years, are __statistically independent__, a risk of a Type 1 error, = α=0.05
 
-Ha: correlation ≠ 0 i.e., actual and predicted values of the dependent variable, Life Expectancy, are __statistically correlated__ , a risk of a Type 1 error, = α=0.05 are correlated a risk of a Type 1 error, = α=0.05
-
+Ha: correlation ≠ 0 i.e., actual and predicted values of the dependent variable, time.years, are __statistically correlated__ , a risk of a Type 1 error, = α=0.05 are correlated a risk of a Type 1 error, = α=0.05
 
 ___Testing Hypothesis___
-
 
 ```{r,  fig.width=5, fig.height=5}
 ( c<- cor.test(x$actual,x$predicted))
 library(sjPlot)
 tab_corr(x, digits=2, show.p=TRUE, p.numeric=TRUE)
 ```
-
 ___Interpretations___
 
-From the analysis above, it can be inferred that actual and predicted values of the dependent variable, Life Expectancy, are significantly correlated (r = 0.9052694 , p = 0.00000009964). Since p = 0.00000009964 < 0.05, the null hypotheses can be rejected. Also, the confidence interval does not include 0.
+From the analysis above, it can be inferred that actual and predicted values of the dependent variable, Life Expectancy, are significantly correlated (r = 0.365843  , p = 0.00000005116). Since p < 0.05, the null hypotheses can be rejected. Also, the confidence interval does not include 0.
+The correlation between the actual and predicted values for those in the test sample is very high, indicating that the predicted values that are close to the actual data values. Hence, Prediction has been done well. 
 
-### Global test of model assumptions using the ‘gvlma’ package
+## Conclusion
 
-The ‘gvlma’ package provides a summary assessment of the assumptions for a linear model and they are below for the testing model.
-```{r,  fig.width=5, fig.height=5}
-pacman::p_load(gvlma)
-gvmodel <- gvlma(model.te) 
-summary(gvmodel)
-```
-
-
-
-___Interpretations___
-
-The summary above provides the following information: 
-
-The intercept with a value of 76.57593133 is well above the origin i.e., the regression line does not pass through the origin.
-
-GDP & Health variables have positive coefficients which indicate direct impact on the dependent variable, LifeExpectancy, whereas HIV, Rural and BirthRate have negative coefficients which indicate inverse relationship with the dependent variable, LifeExpectancy. 
-
-The t-statistic/t-value is just the estimated coefficient divided by its own standard error. Thus, it measures “how many standard deviations from zero” the estimated coefficient is.
-
-From the p value of 0.000002631 we can estimate that statistically intercept goes beyond zero and can reject the null hypotheses that the line intercepts the vertical axis at the origin, α = 0.05.
-
-
-
+The regression model is  very well able to predict the dependent variable,time.years'(years until death)  
 # Survival analysis
 Just like with the regression models, we have to start with a null model.  The table for KM analysis on all cases for the null model is below.
 
@@ -1382,5 +1185,3 @@ Above we see a chi square value of 8.2 and a p value of .004. We do reject the n
 ## Logistic Regression
 ## Survival Analysis
 # Application
-
-
