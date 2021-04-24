@@ -1182,7 +1182,21 @@ survdiff(Surv(time, status)~ rx, data=colon.data, rho=0)
 Above we see a chi square value of 4.1 and a p value of .04. We do reject the null hypothesis as the p-value is .04 and  below our threshold of .05. This means there is a  difference between the Lev treatment and Lev+5FU colon cancer patients.
 </div>
 # Summative Conclusion
-## Distributions of Variables 
+## Distributions of Variables
+
+* Demographic Distribution: With regards to the demographic distribution, there is an approximately equal distribution of males and females in the study. The study population is primarily in the 60+ age group followed by the 40-59 year subset. A very small proportion belongs to <40 years age group.
+
+* Treatment Groups: We considered two separate treatment groups for the analysis and both groups had an approximately equal representation.
+
+*Tumor Descriptor: The following colon cancer variables were reviewed as part of the visualization
+   * Perforation: Almost all tumors did not perforate the colon.
+   * Obstruction: Majority of tumors did not obstruct the colon.  
+   * Adherence; Majority of tumors did not adhere to nearby organs.
+   * Differentiation: Majority of tumors had a histological differentiation of moderate.
+   * Extent: Majority of the extent of localized tumor spread was to the serosa (lining) of the colon.
+   * 5 Year Mortality Rate: Slightly more subjects were alive at the five year mark.
+   * Lymph node Affected: Majority of the tumors did not effect more than four lymph nodes.
+   
 ## Correlation of Variables
 ## Stepwise (Linear) Regression
 ## Logistic Regression
