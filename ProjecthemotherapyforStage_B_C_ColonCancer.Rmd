@@ -1147,9 +1147,9 @@ ggsurvplot(surv.colon, data = colon.data, pval = TRUE, conf.int = TRUE, risk.tab
 <div class = "blue">
 Above we see the survival analysis divided into two groups. Group one being the Lev treatment and group 2 being the Lev+5FU treatment. Some observations include:
 
-For the Lev treatment group, in 93 days time, 308 people had survived and were at risk with a 99% chance of survival. 
+For the Lev treatment group, in 1509 days time, 159 people had survived and were at risk with a 56% chance of survival. 
 
-For the Lev+5FU treatment group, in 79 days time, 300 people had survived and were at risk with a 98% chance of survival.
+For the Lev+5FU treatment group, in 1511 days time, 176 people had survived and were at risk with a 65% chance of survival.
 
 In the plot above:
 
@@ -1159,7 +1159,6 @@ In the plot above:
 * At time zero, the survival probability is 1.0 (or 100% of the participants are alive).
 * From the time of approx 10 to 100, probability of survival for those on standard treatment are higher than probability of those on test treatment.
 * After the time approx 100, the probability of survival for those on the standard treatment gets lower compared to the probability of survival for those on the test treatment.
-* Last person on Standard treatment is around the time 600 whereas test treatment last person is at time 1000.
 * From the graph, it shows the test treatment is less effective than standard treatment in the beginning phase (till time 100) and after that test treatment is superior than the standard treatment.
 * p-value is the p-value of the Log-Rank test comparing the treatment groups
 * Risk table below the plot shows absolute number of individuals at risk for both the treatment groups.
@@ -1180,7 +1179,7 @@ A statistical analysis can be done to prove the differences within the treatment
 survdiff(Surv(time, status)~ rx, data=colon.data, rho=0)
 ```
 <div class = "blue">
-Above we see a chi square value of 8.2 and a p value of .004. We do reject the null hypothesis as the p-value is .004 and well below our threshold of .05. This means there is a significant difference between the Lev treatment and Lev+5FU colon cancer patients.
+Above we see a chi square value of 4.1 and a p value of .04. We do reject the null hypothesis as the p-value is .04 and  below our threshold of .05. This means there is a  difference between the Lev treatment and Lev+5FU colon cancer patients.
 </div>
 # Summative Conclusion
 ## Distributions of Variables
