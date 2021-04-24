@@ -603,6 +603,11 @@ M_r2
 
 #### odds ratios and 95% Confidence Interval
 
+<div class = "blue">
+Every selected predictor appear significant (p-value < 0.05), indeed no odd ratio confidence interval include 1.
+</div> 
+
+
 ```{r}
 tab_model(
   training_model,
@@ -686,12 +691,17 @@ invisible(plot(roc(factor(ifelse(test$mort_5yr == "Died", 2, 1)), fitted(test_mo
 
 ### Checking The Residuals. 
 
+0 means 'Died' and 1 means 'Alive' at 5 years. 59.85% of the test sample patients are alive after the 5 years.
+
 ```{r}
 actual <- test$mort_5yr  # actual  
 actual.num <- ifelse( test$mort_5yr == "Alive", 1, 0)
 frq( actual.num , out="v", title="Actual mort_5yr as 0 and 1 for test sample" )
 ```
 
+<div class = "blue">
+The data below displays both the 'actual' life status of each test sample patient against the 'predicted' of the model. A predicted value below 0.5 estimates that the patient has died whereas a value above 0.5 estimates that this person is alive at the 5 year mark. If we extrapolate the first 20 rows to the rest of the sample, the model is probably not very accurate; this is consistent with the hit-ratio calculated above.
+</div>
 
 ```{r}
 residuals.num <- actual.num - predicted.prob
@@ -702,9 +712,11 @@ head(res.act.pred, 20) %>%
     kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
     footnote(general = "The actual and predicted values of mort_5yr and the residuals.")
 ```
+
 <div class = "blue">
 The following plot shows the predicted probabilities on the horizontal axis and the residuals on the vertical axis. Since the predictions naturally gravitate towards 0 and 1 as the actual values, there are two lines in the plot. The important point is that the distance between the two lines stays fairly consistent from left to right.
 </div>
+
 ```{r}
 plot_scatter( res.act.pred, predicted.prob, residuals.num )
 ```
