@@ -1124,7 +1124,7 @@ library(survminer)
 ggsurvplot(surv.colon, data = colon.data, pval = TRUE)
 ```
 <div class = "blue">
-Since RX treatment has not been entered into the model above, the table and graph above convey that the probabilities of survival from colon cancer at each point in time (days). the lower the days, the higher probability of survival. at 23 days time, there are 614 people at risk with a 98% chance of survival. However as the days increase, the chances of survival go down. We see this illustrated in both the graph and table. For example, at 797 days time, there are 469 peoples with a chance of survival below 76%.
+Since RX treatment has not been entered into the model above, the table and graph above convey that the probabilities of survival from colon cancer at each point in time (days). The lower the days, the higher probability of survival. At 23 days time, there are 551 people at risk with a 99% chance of survival. However as the days increase, the chances of survival go down. We see this illustrated in both the graph and table. For example, at 797 days time, there are 417 people with a chance of survival below 76%.
 </div>
 
 ## Survival Model for the RX Treatment on All Cases
