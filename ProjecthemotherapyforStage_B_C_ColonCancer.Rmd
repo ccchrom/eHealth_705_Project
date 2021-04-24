@@ -1101,8 +1101,10 @@ The correlation between the actual and predicted values for those in the test sa
 
 ## Conclusion
 
-The regression model is  very well able to predict the dependent variable,time.years'(years until death)  
+The regression model is  very well able to predict the dependent variable,time.years'(years until death)
+
 # Survival analysis
+
 Just like with the regression models, we have to start with a null model.  The table for KM analysis on all cases for the null model is below.
 
 ```{r }
@@ -1124,7 +1126,9 @@ ggsurvplot(surv.colon, data = colon.data, pval = TRUE)
 <div class = "blue">
 Since RX treatment has not been entered into the model above, the table and graph above convey that the probabilities of survival from colon cancer at each point in time (days). the lower the days, the higher probability of survival. at 23 days time, there are 614 people at risk with a 98% chance of survival. However as the days increase, the chances of survival go down. We see this illustrated in both the graph and table. For example, at 797 days time, there are 469 peoples with a chance of survival below 76%.
 </div>
+
 ## Survival Model for the RX Treatment on All Cases
+
 First this is done by showing the model for each treatment type.
 ```{r }
 surv.colon <- survfit(Surv(time,status) ~ rx, conf.int=TRUE, data = colon.data)
