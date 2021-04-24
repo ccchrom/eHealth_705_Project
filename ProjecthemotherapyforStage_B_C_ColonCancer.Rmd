@@ -1182,7 +1182,7 @@ survdiff(Surv(time, status)~ rx, data=colon.data, rho=0)
 Above we see a chi square value of 4.1 and a p value of .04. We do reject the null hypothesis as the p-value is .04 and  below our threshold of .05. This means there is a  difference between the Lev treatment and Lev+5FU colon cancer patients.
 </div>
 # Summative Conclusion
-## Distributions of Variables
+## Distributions of Variables 
 ## Correlation of Variables
 ## Stepwise (Linear) Regression
 ## Logistic Regression
