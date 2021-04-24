@@ -232,7 +232,7 @@ p16 <- ggplot(plotdata12,
        aes(x = reorder(sex.factor, -pct),
            y = pct)) + 
   geom_bar(stat = "identity", 
-           fill = "indianred3", 
+           fill = "lightblue", 
            color = "black") +
   geom_text(aes(label = pctlabel), 
             vjust = -0.25) +
@@ -251,7 +251,7 @@ p17 <- ggplot(plotdata13,
        aes(x = reorder(age.factor, -pct),
            y = pct)) + 
   geom_bar(stat = "identity", 
-           fill = "indianred3", 
+           fill = "lightblue", 
            color = "black") +
   geom_text(aes(label = pctlabel), 
             vjust = -0.25) +
@@ -269,7 +269,7 @@ p14 <- ggplot(plotdata9,
        aes(x = reorder(rx.factor, -pct),
            y = pct)) + 
   geom_bar(stat = "identity", 
-           fill = "indianred3", 
+           fill = "lightblue", 
            color = "black") +
   geom_text(aes(label = pctlabel), 
             vjust = -0.25) +
@@ -288,7 +288,7 @@ p15 <- ggplot(plotdata10,
        aes(x = reorder(surg.factor, -pct),
            y = pct)) + 
   geom_bar(stat = "identity", 
-           fill = "indianred3", 
+           fill = "lightblue", 
            color = "black") +
   geom_text(aes(label = pctlabel), 
             vjust = -0.25) +
@@ -306,7 +306,7 @@ p01 <- ggplot(plotdata,
        aes(x = reorder(perfor.factor, -pct),
            y = pct)) + 
   geom_bar(stat = "identity", 
-           fill = "indianred3", 
+           fill = "lightblue", 
            color = "black") +
   geom_text(aes(label = pctlabel), 
             vjust = -0.25) +
@@ -325,7 +325,7 @@ p02 <- ggplot(plotdata1,
        aes(x = reorder(obstruct.factor, -pct),
            y = pct)) + 
   geom_bar(stat = "identity", 
-           fill = "indianred3", 
+           fill = "lightblue", 
            color = "black") +
   geom_text(aes(label = pctlabel), 
             vjust = -0.25) +
@@ -343,7 +343,7 @@ p03 <- ggplot(plotdata2,
        aes(x = reorder(adhere.factor, -pct),
            y = pct)) + 
   geom_bar(stat = "identity", 
-           fill = "indianred3", 
+           fill = "lightblue", 
            color = "black") +
   geom_text(aes(label = pctlabel), 
             vjust = -0.25) +
@@ -361,7 +361,7 @@ p04 <- ggplot(plotdata3,
        aes(x = reorder(differ.factor, -pct),
            y = pct)) + 
   geom_bar(stat = "identity", 
-           fill = "indianred3", 
+           fill = "lightblue", 
            color = "black") +
   geom_text(aes(label = pctlabel), 
             vjust = -0.25) +
@@ -379,7 +379,7 @@ p05 <- ggplot(plotdata4,
        aes(x = reorder(extent.factor, -pct),
            y = pct)) + 
   geom_bar(stat = "identity", 
-           fill = "indianred3", 
+           fill = "lightblue", 
            color = "black") +
   geom_text(aes(label = pctlabel), 
             vjust = -0.25) +
@@ -398,7 +398,7 @@ p06 <- ggplot(plotdata5,
        aes(x = reorder(mort_5yr, -pct),
            y = pct)) + 
   geom_bar(stat = "identity", 
-           fill = "indianred3", 
+           fill = "lightblue", 
            color = "black") +
   geom_text(aes(label = pctlabel), 
             vjust = -0.25) +
@@ -416,7 +416,7 @@ p07 <- ggplot(plotdata6,
        aes(x = reorder(node4.factor, -pct),
            y = pct)) + 
   geom_bar(stat = "identity", 
-           fill = "indianred3", 
+           fill = "lightblue", 
            color = "black") +
   geom_text(aes(label = pctlabel), 
             vjust = -0.25) +
