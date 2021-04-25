@@ -732,7 +732,7 @@ Even so, the model can not be used reliably to determine the 5 year life status 
 </div>
 
 # Multiple Regression using All Predictor Variables  
-A stepwise regression is also use to analyze the impact that treatment and other factors have on life expectancy.  We use the same independent factors as the logistic regression.  Using stepwise (or multiple linear) regression requires that the dependent variable is numeric - which is why we are using 'time.years' instead of the factor mort-5yr.  This is done to compare the results and add or remove validity from the logistic regression.  Moreover, it helps in determining the overall fit of the model and the relative contribution (or strength) of each of the independent variable in explaining the variance. 
+A stepwise regression is also used to analyze the impact that treatment and other factors have on life expectancy.  We used the same independent factors as the logistic regression.  Using stepwise (or multiple linear) regression requires that the dependent variable is numeric - which is why we are using 'time.years' instead of the factor mort-5yr.  This is done to compare the results and add or remove validity from the logistic regression.  Moreover, it helps in determining the overall fit of the model and the relative contribution (or strength) of each of the independent variable in explaining the variance. 
 
 The hypotheses for this is as follows:
 <p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
@@ -805,7 +805,7 @@ Using the stepAIC() function, it appears that the adjuvant therapy, age, differe
 We run another linear model with the results from the 'stepAIC' function in order to assess its fit.
 ```{r ,  fig.width=5, fig.height=5, comment=NA}
 RegModel.2 <- 
-  lm(time.years ~ rx + extent + loccomp + node4,
+  lm(time.years ~ rx + age + differ + extent + loccomp + node4,
    data=colon.data)
 tab_model(
   RegModel.1,step,RegModel.2 ,
@@ -830,17 +830,20 @@ tab_model(
 
 ___RegModel.2 model: The model reduced to only variables having coefficients with significant differences from zero___
 <div class = "blue">
-The RegModel.2 model above (model to the right), obtained through the stepwise regression (or stepwise selection) has the variables 'rx','extent','loccomp' and 'node4' have coefficients that are significantly different (p<0.05) from zero.  Hence, the null hypotheses, which assume no relationships between the variables and the dependent variable ('time.years'), for these variables would be rejected. 
+The RegModel.2 model above (model to the right), obtained through the stepwise regression (or stepwise selection) has the 'rx','age', 'differ','extent','node4', 'loccomp' have coefficients that are significantly different (p<0.05) from zero as shown by the p-values (p(sig)).Hence, the null hypotheses, which assume no relationships between the variables and the dependent variable ('time.years:'years until death'), for these variables would be rejected. 
 
-Moreover, The adjusted R2(0.145), coefficient of multiple determination, is slightly higher in the original model.  The AIC is smaller at 2469.4 - showing that it has a better fit.
+Moreover, The adjusted R2(0.149), coefficient of multiple determination, is slightly higher in RegModel.2 model  with 6 predictor variables while the AIC, for the same model, is smaller (3735.011), i.e., better.
 
 This will be considered our final model and we will continue on with testing.
 </div>
 ## Relative Importance of Predictors (Drivers) in the final model
 <div class = "blue">
 The table below presents all of the relative importance metrics from ‘relaimpo’. 
+The table below presents all of the relative importance metrics from ‘relaimpo’. 
 The first block in the Table provides the 'lmg' metric for each variable. 
-The second block gives the coefficients when 1 predictor is entered through to all 4 predictors. lmg metric assesses the relative importance of each of the predictors to the relationship (between the dependent variable and the predictor variables) both in terms of explanation and for prediction.
+The second block gives the coefficients when 1 predictor is entered, 2 are entered through to all 6 predictors. lmg metric assesses the relative importance of each of the predictors to the relationship (between the dependent variable and the
+predictor variables) both in terms of explanation and for prediction.
+
 </div>
 ```{r}
 library(relaimpo) 
@@ -896,7 +899,7 @@ In our final model (evident from the VIF table above), VIF values for all the pr
 ## Building a Regression Model Using the Training Sample Data  
 We use the same training sample as in the Logistic Regression in hopes to acheive the same results.
 ```{r }
-model.tr<-lm(time.years~ rx + extent + loccomp +  node4, train)
+model.tr<-lm(time.years~ rx + age + differ + extent + loccomp +  node4, train)
 summary(model.tr) 
 tab_model(
   model.tr,
@@ -1043,9 +1046,10 @@ Shapiro-Wilk’s method has been used to test the normality of Residuals, consid
 shapiro.test((residual))
 ```
 <div class ="blue">
-From the Shapiro-Wilk normality test, we have got the p value of 0.04357. Assuming an alpha of 0.05, since the p-value is less than 0.05, null hypothesis (that distribution of residuals is normal) is  rejected. Hence it may be concluded that the residuals are ___not normally distributed___
+From the Shapiro-Wilk normality test, we have got the p value of 0.04357. Assuming an alpha of 0.05, since the p-value is lesser than 0.05, null hypothesis (that distribution of residuals is Normal) is rejected. Hence it may be concluded that the residuals __are not normally distributed___
 
-Hence it can be concluded that the regression model (model.tr) may not be the most accurate at explaining/predicting the trends in time until death in years.
+Hence it can be concluded that the regression model (model.tr) with variables 'rx','age','differ','extent','loccomp','node4' cannot explain/ predict that the trends in the dependent variable(time.years )
+
 </div>
 
 ### Testing homoscedasticity and Stating hypotheses. 
@@ -1063,8 +1067,11 @@ pacman::p_load( "olsrr" )
 ols_test_breusch_pagan(model.tr)
 ```
 <div class = "blue">
-The Breush-Pagan test creates a statistic that is chi-squared distributed and for this data that statistic = 4.73163.
-The p-value is the result of the chi-squared test and the null hypothesis is rejected for p-value < 0.05. We should conclude that variance around regression line is not constant throughout its range.
+
+The Breush-Pagan test creates a statistic that is chi-squared distributed and for this data that statistic = 4.862106 .
+The p-value is the result of the chi-squared test and the null hypothesis is rejected for p-value < 0.05. With the p value of 0.027 (<0.05), __the null hypothesis__ of homoskedasticity would be __rejected__.We should conclude that variance
+around regression line is not constant throughout its range.
+
 </div>
 ### Scatter plots of Predicted vs Actual
 Scatter plots of Predicted vs Actual is used to understand how well the regression model makes predictions for different response values.  A perfect regression model has a predicted response equal to the true response, so all the points lie on a diagonal line. The vertical distance from the line to any point is the error of the prediction for that point. A good model has small errors, and so the predictions are scattered near the line.
@@ -1092,13 +1099,18 @@ library(sjPlot)
 tab_corr(x, digits=2, show.p=TRUE, p.numeric=TRUE)
 ```
 <div class = "blue">
-From the analysis above, it can be inferred that actual and predicted values of the dependent variable, Life Expectancy, are significantly correlated (r = 0.3494662, p = 0.00002843). Since p < 0.05, the null hypotheses can be rejected. Also, the confidence interval does not include 0.
-The correlation between the actual and predicted values for those in the test sample is very high, indicating that the predicted values that are close to the actual data values. Hence, prediction has been done well. 
+From the analysis above, it can be inferred that actual and predicted values of the dependent variable, Life Expectancy, are significantly correlated (r = 0.3494662   , p = 0.00002843). Since p < 0.05, the null hypotheses can be rejected. Also, the confidence interval does not include 0.
+The correlation between the actual and predicted values for those in the test sample is very high, indicating that the predicted values that are close to the actual data values. Hence, Prediction has been done well. 
 </div>
+  
 ## Conclusion
+  
 <div class ="blue">
+  
 While our model did not have a perfect fit, it provided important information that shows having 4 or more lymph nodes, knowing the extent of the local spread, and the primary location of the tumor have importance on life expectancy in years.
+
 </div>
+
 # Survival analysis
 Just like with the regression models, we have to start with a null model.  The table for KM analysis on all cases for the null model is below.
 
