@@ -33,16 +33,21 @@ colorize <- function(x, color) {
   } else x
 }
 ```  
+# Abstract
+The [Canadian Cancer Society](https://www.cancer.ca/en/cancer-information/cancer-type/colorectal/statistics/?region=on) state that "Colorectal cancer is expected to be the third most commonly diagnosed cancer in Canada in 2020 (excluding non-melanoma skin cancers). It is the second leading cause of death from cancer in men and the third leading cause of death from cancer in women in Canada.".  We aim to use the data from Moertel et. al (1990) do assess the factors that impact mortality in those with Type B/C Colon Cancer, as well as comparing the treatment of [levimasole](https://go.drugbank.com/drugs/DB00848) against levimasole and [fluorouracil](https://go.drugbank.com/drugs/DB00544).  Regressions were done - both stepwise and logistic - against two indicators of mortality - living or deceased at the 5 year mark (mort_5yr), and time until death in years (time.years).
 
 # Objectives 
-
 <style>
 div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 </style>
 <div class = "blue">
-We wish to confirm using our own process that adjuvant therapy with the combination of levamisole and fluorouracil significantly reduce death within 5 years compared with no adjuvant therapy – using only levamisole.  We chose to only include these two groups because we are only comparing adjuvant therapy against normal therapy.  Levimasole is already recognized worldwide as an antiparasitic drug that changes ones immune response, similar to methotrexate – so we are considering it a control.  We aim to achieve this by:<br>
+There are two main objectives we are trying to achieve:  
+1.  To find which tumor descriptors and demographics have the greatest impact on life expectancy.  
+2.  To confirm using our own process that adjuvant therapy with the combination of levamisole and fluorouracil significantly reduce death within 5 years compared with no adjuvant therapy – using only levamisole.  
 
-1.  Assessing the distributions of variables within the two treatment categories, including: (distribution plots/tables between groups)  
+We aim to achieve this by:<br>
+1.  Cleaning the data from the original and filtering it to our testing needs
+2.  Using distribution plots and tables to assess the distributions of variables within the two treatment categories. 
     a.	Sex – Male or female patients  
     b.	Age – Finding the average (or median) age that has most impact on 5 year survival  
     c.	Obstructive tumours versus non-obstructive  
@@ -54,22 +59,21 @@ We wish to confirm using our own process that adjuvant therapy with the combinat
         ii.	Within muscle  
         iii.	Within the serosa – the outermost layer of organs  
         iv.	Contiguous structures – meaning nearby organs  
-2.  Investigating if any of the predictor variables have an impact on each other. (correlation)(VIF)  
-3.  Using stepwise (linear) regression to obtain a model that best describes the impact of specific variables on time until death.  
-4.	Using a logistic regression model to investigate the association between five year life status and one or more categorical predictor variables within each treatment group (regression models for both groups) (predict) (train+test) (residuals)  
+3.	Using a logistic regression model to investigate the association between five year life status and one or more categorical predictor variables.  
+4.  Using stepwise (linear) regression to obtain a model that best describes the impact of specific variables on time until death.  
 5.	Assessing whether there are differences in survival (or cumulative incidence of event) among different groups of participants  
-    a.  This will be done by testing the null hypothesis of no difference in survival between two or more independent groups.  
-        i.	H0: The two survival rates are identical, (α=0.05).    
-        ii.	Ha: The two survival rates are not identical.  (chi-square test)  
-6.	Analyzing data within the subset of Levamisole-fluorouracil to find which variables have the greatest impact on 5 year mortality.  (Reliampo)  
+6.  Using correlation and Variance Inflaction Factors (VIF) to investigate if any of the tumor descriptors or demographics have an impact on each other. (correlation)(VIF)  
+7.	Use relative importance testing to assess which of the tumor descriptors or demographics have the greatest impact on mortality.
+9.  Testing our constructed regression models on a split test sample to assess their quality.
 </div>
 
 # Read the file  
 <div class = "blue">
-This data comes from a study investigating the addition of fluorouracil to the treatment regime of Levamisole in subjects with colon cancer.<br>
+This data comes from a study investigating the addition of Fluorouracil to the treatment regime of Levamisole in subjects with colon cancer.<br>
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
 Moertel, C., Fleming, T.,Macdonald, J., Haller, D., Laurie, J., Goodman, P., Ungerleider, J., Emerson, W., Tormey, D., Glick, J., Veeder, M. & Mailliard, J. (1990). Levamisole and Fluorouracil for Adjuvant Therapy of Resected Colon Carcinoma. <i> The New England Journal of Medicine. </i> 332(<i>6</i>).
 </div>
-
+</p>
 ```{r}
 colon.data <- read.csv('colon_s.csv')
 str(colon.data)
@@ -82,25 +86,25 @@ The description of the variables for this dataset are listed below.
 
 ```{r}
 df = as.data.frame(matrix( 
-  c('id','id',
+  c('id','Research ID',
     'rx','Treatment - Obs(ervation), Lev(amisole), Lev(amisole)+5-FU',
-    'sex','sex of the patient (1 = Male, 0 = Female)',
-    'age','age in years',
-    'obstruct','obstruction of colon by tumour',
-    'perfor','perforation of colon',
-    'adhere','adherence to nearby organs',
-    'nodes','number of lymph nodes with detectable cancer',
-    'status','censoring status',
-    'differ','histological differentiation of tumour (1=well, 2=moderate, 3=poor)',
-    'extent','Extent of local spread (1=submucosa, 2=muscle, 3=serosa,
-4=contiguous structures)',
-    'surg','time from surgery to registration (0=short (7-20 days), 1=long (21-35 days))',
-    'node4','more than 4 positive lymph nodes',
-    'time','days until death',
-    'loccomp','location of primary tumor - mi;to[;e ',
-    'time.years','years until death',
-    'mort_5yr','5 years life status',
-    'age.10','Age divided by 10..',
+    'sex','Sex of the Patient (1 = Male, 0 = Female)',
+    'age','Age in Years',
+    'obstruct','Obstruction of Colon by Tumour',
+    'perfor','Perforation of Colon',
+    'adhere','Adherence to Nearby Organs',
+    'nodes','Number of Lymph Nodes with Detectable Cancer',
+    'status','Censoring Status',
+    'differ','Histological Differentiation of Tumour (1=Well, 2=Moderate, 3=Poor)',
+    'extent','Extent of Local Spread (1=Submucosa, 2=Muscle, 3=Serosa,
+4=Contiguous structures)',
+    'surg','Time from Surgery to Registration (0=Short (7-20 days), 1=Long (21-35 days))',
+    'node4','More Than 4 Positive Lymph Nodes',
+    'time','Days until Death',
+    'loccomp','Location of Primary Tumor',
+    'time.years','Years until Death',
+    'mort_5yr','5 Year Life Status',
+    'age.10','Age Divided by 10..',
     'hospital','Hospital'), # the data elements 
   ncol = 2,              # number of rows 
   byrow = TRUE))
@@ -141,10 +145,7 @@ describe(colon.data)
 ```
 ## Missing Values and Treatment
 In this section, the total count of missing values (NA) in each column is identified and treated *Note* - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.
-### Total Count of Missing Values>
-<div class = "blue">
-The summary table below provides total count of NA for all the variables along with other information like minimum value, Max.value, Mean, Median etc. From the table below it is identified 6 of the variables contain NAs that need to be treated for further analysis.
-</div>
+
 ```{r}
 MD <- colSums(is.na(colon.data))
 library(kableExtra)
@@ -153,15 +154,14 @@ MD[c(3:14,27,29:30)] %>%
   kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T)
 ```
 <div class = "blue">
-  
-It is noted that within this dataset, that there are already factor versions of the variables.  To be sure not to double count, below is a summary of the NAs:
-* Below are the columns identified with NA:
-   * obstruct - 15
-   * nodes - 15
-   * differ - 16
-   * surg - 11
-   * loccomp - 14
-   * mort_5yr - 8
+It is noted that within this dataset, that there are already factor versions of the variables.  To be sure not to double count, below is a summary of the NAs:  
+* Below are the columns identified with NA:  
+   * obstruct - 15  
+   * nodes - 15  
+   * differ - 16  
+   * surg - 11  
+   * loccomp - 14  
+   * mort_5yr - 8  
    
 The total of NAs is 79 - which is roughly 12% of the filtered sample of 614.  We chose to omit these values due to the large sample size.  There was worry that if we imputed this data - which is mostly two-level factors - that there may be a large margin of error and it may produce bias in our model.
 </div>
@@ -179,44 +179,18 @@ colon.data %>% datatable()
 ```
 <div class = "blue">
  
-Below tree diagram shows:
-* Total number of observations in the Cleaned Dataset- 551
-* 51% of the observations are for patients who were given levamisole (Lev).
-* 49% were given levamisole + fluorouracil (Lev +5FU)
-* There are almost equal distribution of males and females in the study. There are more females on the Lev+FU treatment.
-* Majority of the study population is from +60 age group followed by 40-59 years and a very small propoortion belong to <40 years age group. There is approximately equal distribution of the population in the 3 age group categories for both the treatments.
+Below tree diagram shows:  
+     * Total number of observations in the cleaned dataset- 551  
+     * 51% of the observations are for patients who were given levamisole (Lev).  
+     * 49% were given levamisole + fluorouracil (Lev +5FU)  
+     * There are almost equal distribution of males and females in the study. There are more females on the Lev+FU treatment.  
+     * Majority of the study population is from +60 age group followed by 40-59 years and a very small proportion belong to <40 years age group. There is approximately equal distribution of the population in the 3 age group categories for both the treatments.  
 </div>
 ```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2: Tree Diagram of Cleaned Colon Dataset"}
 library(vtree)
 vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
 ```
-## Preliminary Statistical Findings
-<div class = "blue">
-Below are the preliminary findings based on the graphs and the summary below.
-The cleaned, recoded sample has total of 551 observations.
-Some preliminary observations for the variables used in the analysis below:
-**Demographic Distribution**
-* Sex - A fairly equal distribution between Male and Female.  
-* Age Group - Majority of the observation belongs to 60+ age group.
-      
-**Treatment Indicators**
-* Treatment - 15 more observations in the Levimasole group.  
-* Time to Treatment (surg) - Majority of observations had a shorter time to treatment - meaning within 7 to 20 days. 
-      
-**Tumor Descriptors**
-* Obstruction - Majority of the observations have no obstructive tumors.  
-* Perforation - Majority of the observations is "No" while a very few observations belong to "Yes".  
-* Adherence - Majority of the observation is "No" for adherence to nearby organs.  
-* Differ - Majority of the observations belong to the "Moderate" histological differentiation category.  
-* Extent - Majority of the observation belongs to tumor growth into the serosa (lining of the intestine).
-* Nodes - Majority of observations had less than 4 lymph nodes affected by the tumor.  
-* Time.years - The mean of years until death is 4.6.  
-* Mort_5 yr - Majority of the observations belong to "Alive".
-</div>
-```{r echo=TRUE, message=FALSE, error=FALSE, warning=FALSE}
-summary(colon.data)
-```
-### Visualizing Data {-}
+
 Below graphs are plotted to understand the Demographic distribution, treatment distribution, time to treatment and the tumor descriptors.
 ```{r echo=TRUE, message=FALSE, warning=FALSE, error=FALSE, fig.width=8, fig.height=8, comment=NA}
 library(ggplot2)
@@ -443,6 +417,35 @@ grid.arrange(p01,p02,p03,p04, top = "Tumor Descriptors",
 grid.arrange(p05,p06,p07,p08, top = "Tumor Descriptors",
             layout_matrix = matrix(c(1,2,3,4), ncol=2, byrow=TRUE)) 
 ``` 
+
+## Preliminary Statistical Findings
+<div class = "blue">
+Below are the preliminary findings based on the graphs and the summary below.  
+The cleaned, recoded sample has total of 551 observations.  
+Some preliminary observations for the variables used in the analysis below:  
+
+**Demographic Distribution**  
+* Sex - A fairly equal distribution between Male and Female.  
+* Age Group - Majority of the observation belongs to 60+ age group.  
+      
+**Treatment Indicators**  
+* Treatment - 15 more observations in the Levimasole group. 
+* Time to Treatment (surg) - Majority of observations had a shorter time to treatment - meaning within 7 to 20 days.  
+      
+**Tumor Descriptors**  
+* Obstruction - Majority of the observations have no obstructive tumors.  
+* Perforation - Majority of the observations is "No" while a very few observations belong to "Yes".    
+* Adherence - Majority of the observation is "No" for adherence to nearby organs.  
+* Differ - Majority of the observations belong to the "Moderate" histological differentiation category.  
+* Extent - Majority of the observation belongs to tumor growth into the serosa (lining of the intestine).  
+* Nodes - Majority of observations had less than 4 lymph nodes affected by the tumor.  
+* Time.years - The mean of years until death is 4.6.  
+* Mort_5 yr - Majority of the observations belong to "Alive".  
+</div>
+```{r echo=TRUE, message=FALSE, error=FALSE, warning=FALSE}
+summary(colon.data)
+```
+
 # Splitting into Training and Testing Samples
 <div class = "blue">
 In order to do further analysis, we have to create training and testing samples  The training sample will be used to create an equation to show the impact that tumor characteristics and treatment will have on life expectancy.  The test sample is used to test that equation for it's accuracy.
@@ -728,9 +731,8 @@ The extent of the spread, the age group and the number of nymph nodes are the ma
 Even so, the model can not be used reliably to determine the 5 year life status of a patient; its hit-ratio doesn't exceed 67%.
 </div>
 
-# Multiple regression using all predictor variables.
-<div class = "blue">
-A stepwise regression is also use to analyze the impact that treatment and other factors have on life expectancy.  We use the same independent factors as the logistic regression.  Using stepwise (or multiple linear) regression requires that the dependent variable is numeric - which is why we are using 'time.years' instead of the factor mort-5yr.  This is dont to compare the results and add or remove validity from the logistic regression.  Moreover, it helps in determining the overall fit of the model and the relative contribution (or strength) of each of the independent variable in explaining the variance. 
+# Multiple Regression using All Predictor Variables  
+A stepwise regression is also use to analyze the impact that treatment and other factors have on life expectancy.  We use the same independent factors as the logistic regression.  Using stepwise (or multiple linear) regression requires that the dependent variable is numeric - which is why we are using 'time.years' instead of the factor mort-5yr.  This is done to compare the results and add or remove validity from the logistic regression.  Moreover, it helps in determining the overall fit of the model and the relative contribution (or strength) of each of the independent variable in explaining the variance. 
 
 The hypotheses for this is as follows:
 <p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
@@ -739,7 +741,8 @@ i.e., no statistically significant relationship between each independent variabl
 $H_a$: coefficient ≠ 0, a risk of a Type 1 error, = $\alpha = 0.05$  
 .e., significant relationship between each independent variable and the dependent variable.
 </p>
-</div>
+## The Full Model
+Below is the model on the full sample using all tumor descriptors and demographics.
 ```{r ,  fig.width=5, fig.height=5, comment=NA}
 RegModel.1 <- 
   lm(time.years ~ rx + sex + age + obstruct + perfor + adhere + differ + extent+surg+loccomp+node4,
@@ -787,22 +790,17 @@ plotreg(RegModel.1, custom.model.names ="Regression of time.years")
 </div>
 </div>
 
-## Reducing the model to significant predictors
-<div class = "blue">
-In the current regression model (RegModel.1), the independent variables 'rx[T.Lev+5FU]', 'rx[T.Obs]', 'sex','obstruct', 'perfor', 'adhere','differ', 'surg',and 'loccomp' variables have p-values greater than 0.05.  Since these variables would not be able to predict changes in the values of 'time.years', the elimination of statistically insignificant variables will increase the precision of the model. 
-</div>
-
 ## Stepwise Regression
-<div class = "blue">
 We have applied the statistical significance criterion automatically with an algorithmic procedure called stepAIC() from the 'MASS' package. The purpose of the statistical significance criterion is to find the best model that has a set of independent variables that significantly influence the dependent variable. The AIC at the top of each regression compares the quality of a set of statistical models to each other. The model which has lower AIC value is the best model.  AIC will choose the best model from a set, but it won’t say anything about absolute quality. Therefore, once the best model has been selected, a hypothesis test will be run to figure out the relationship between the variables in the model selected and the time in years until death ('time.years').
-</div>
 ```{r}
 library(MASS)  
 step <- stepAIC(RegModel.1, direction="both")
 step
 ```
-
-## Testing the model from the 'stepAIC' function
+<div class = "blue">
+Using the stepAIC() function, it appears that the adjuvant therapy, age, differentiation, extent of spread, location of primary tumor have the greatest impact when assessing AIC.
+</div>
+## Comparing the Models
 
 We run another linear model with the results from the 'stepAIC' function in order to assess its fit.
 ```{r ,  fig.width=5, fig.height=5, comment=NA}
@@ -810,7 +808,7 @@ RegModel.2 <-
   lm(time.years ~ rx + extent + loccomp + node4,
    data=colon.data)
 tab_model(
-  RegModel.1,RegModel.2 ,
+  RegModel.1,step,RegModel.2 ,
   title = "Regression models with 6 predictor variables and with 11 predictor variables",
   show.stat = TRUE,
   digits = 3,
@@ -821,7 +819,7 @@ tab_model(
   show.aic = TRUE,
   linebreak = TRUE,
   CSS = list(
-    css.depvarhead = 'color: darkorange;',
+    css.depvarhead = 'color: blue;',
     css.centeralign = 'text-align: left;',
     css.firsttablecol = 'font-weight: bold;',
     css.summary = 'color: blue;'
@@ -849,9 +847,7 @@ library(relaimpo)
 imp.model.2<-calc.relimp(RegModel.2,type=c("lmg"),rela = TRUE)
 imp.model.2
 ```
-<div class = "blue">
 The below table and graph show the variables which have the largest impact on 'time.years'
-</div>
 ```{r}
 rel.lmg<- calc.relimp(RegModel.2, type="lmg", rela=TRUE)
 pm<- data.frame(rel.lmg$lmg, rel.lmg$lmg.rank)
@@ -897,11 +893,8 @@ In our final model (evident from the VIF table above), VIF values for all the pr
 </div>
 
 
-## Building a Regression Model Using the Training Sample Data.
-
-<div class = "blue">
+## Building a Regression Model Using the Training Sample Data  
 We use the same training sample as in the Logistic Regression in hopes to acheive the same results.
-</div>
 ```{r }
 model.tr<-lm(time.years~ rx + extent + loccomp +  node4, train)
 summary(model.tr) 
@@ -947,6 +940,7 @@ This is displayed graphically below using the plotreg() function.
 ```{r}
 plotreg(model.tr, custom.model.names =" Regression models of time.years using the Training Sample")
 ```
+
 ## Reporting on the relative importance of those variables that remain in the model with a table, graph and in words. 
 We again test the relative importance of our predictor variables to see their importance.  This is shown in a chart and a graph as well.
 ```{r}
@@ -981,7 +975,7 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
 <div class ="blue">
 It is noted once again that'node4' has the highest lmg value, followed by the 'extent', "loccomp", then 'rx' when assessing their impact on 'time.years'. 
 </div>
-## Reporting The Training Residuals and Testing Their Distribution
+## Reporting The Training Residuals  
 Below is a table that shows the actual value of time.years for the sample, followed by the predicted value based on our model, then the residuals - or difference between them.
 ```{r}
 predicted <- predict(model.tr, newdata=train  )
@@ -999,21 +993,36 @@ In the table above, it can be noticed (from the first row) that the actual time.
 
 The difference also known as the residual or error of prediction is -3.28 meaning the equation's result was lower.  
 </div>
-## Testing if the distribution of the residuals is normal
-<div class ="blue">
+
+
+## Reporting The Testing Residuals from the Training Model
+Below is a table that shows the actual value of time.years for the sample, followed by the predicted value based on our model, then the residuals - or difference between them.
+```{r}
+predicted <- predict(model.tr, newdata=test  )
+actual <- test$time.years # actual Q3a attitudes for testing sample
+residual <- predicted - actual   
+x<- as.data.frame(cbind(actual, predicted, residual)) 
+library(kableExtra)
+head(x, 10) %>%
+  kable("html", align = 'clc', digits=2, col.names=c( "actual", "predicted", "residuals")) %>%
+    kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+    footnote(general = "The actual and predicted values of time.years and the residuals for the first 6 Patients.")
+```
+
+### Testing if the distribution of the residuals is normal
 Prediction intervals are calculated based on the assumption that the residuals are normally distributed. Moreover, while building a optimally fitting linear model, it is assumed that the relationship is linear, and that the errors, or residuals, are simply random fluctuations around the true line. Non-normality of the residuals indicates that the errors the model makes are not consistent across variables and observations (i.e. the errors are not random). Hence model inference (confidence intervals, model predictions) may not be valid, affecting the reliability and usability of the model.
 
 <p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
 $H_o$: Distribution of residuals is Normal , risk of a Type 1 error = $\alpha = 0.05$.   
 $H_a:$ Distribution of residuals is not Normal
 </p>
-</div>
+
 ```{r  fig.width=5, fig.height=5 }
 library("car")
 qqPlot(model.tr, main="QQ Plot") 
 ```
 <div class ="blue">
-The plot above shows the distribution of the residuals against the expected normal distribution. For normally distributed data, observations should lie approximately on the reference line. In the Q-Q Plot above, the studentized Residuals match the theoretical quantiles only at the median. The samples seem to be symmetric around the median. Q–Q plot is "S" shaped, indicating that one of the distributions is more skewed than the other, or that one of the distributions has heavier tails than the other. Hence residuals may not be normally distributed. Hence, further investigation is required.
+The plot above shows the distribution of the residuals against the expected normal distribution. For normally distributed data, observations should lie approximately on the reference line. In the Q-Q Plot above, the studentized residuals match the theoretical quantiles only at the median. The samples seem to be symmetric around the median. Q–Q plot is "S" shaped, indicating that one of the distributions is more skewed than the other, or that one of the distributions has heavier tails than the other. Hence residuals may not be normally distributed. Hence, further investigation is required.
 
 In the density plots below, we attempt to visualize the underlying probability distribution of the residuals by drawing an appropriate continuous curve. 
 Residuals do not seem to be normally distributed as residuals are not symmetric about the mean and show bimodality. It should be further investigated by the conducting Normality testing.
@@ -1023,10 +1032,10 @@ d <- densityPlot(residual)
 ```
 ```{r echo=TRUE, message=FALSE, warning=FALSE, fig.width=5, fig.height=5, comment=NA}
 plot(d, main=" Density Plot Residuals")
-polygon(d, col="orange", border="green")
+polygon(d, col="lightblue", border="blue")
 ```
 
-### Testing the hypothesis using Shapiro-Wilk’s method
+### Testing the Distribution of Residuals using Shapiro-Wilk’s method
 
 Shapiro-Wilk’s method has been used to test the normality of Residuals, considering a significance level of 0.05. 
 
@@ -1034,89 +1043,63 @@ Shapiro-Wilk’s method has been used to test the normality of Residuals, consid
 shapiro.test((residual))
 ```
 <div class ="blue">
-From the Shapiro-Wilk normality test, we have got the p value of 0.0002281. Assuming an alpha of 0.05, since the p-value is greater than 0.05, null hypothesis (that distribution of residuals is Normal) is not rejected. Hence it may be concluded that the residuals are ___normally distributed___
+From the Shapiro-Wilk normality test, we have got the p value of 0.04357. Assuming an alpha of 0.05, since the p-value is less than 0.05, null hypothesis (that distribution of residuals is normal) is  rejected. Hence it may be concluded that the residuals are ___not normally distributed___
 
-Hence it can be concluded that the regression model (model.tr) can explain/ predict that the trends in the dependent variable(time.years )
+Hence it can be concluded that the regression model (model.tr) may not be the most accurate at explaining/predicting the trends in time until death in years.
+</div>
 
-## Testing homoscedasticity and Stating hypotheses. 
+### Testing homoscedasticity and Stating hypotheses. 
 
 The assumption of homoscedasticity (meaning “same variance”) is central to linear regression models.  Homoscedasticity describes a situation in which the error term (that is, the “noise” or random disturbance in the relationship between the independent variables and the dependent variable) is the same across all values of the independent variables. 
 
 Homoscedasticity in the best model  is tested below using the Breusch Pagan Test. It tests whether variances of residuals from a regression are dependent on the values of an independent variable.
 
-__Stating Null and Alternative Hypothesis:__ 
-
-$H_o:$ there are equal or constant variances,  $\alpha$ = 0.05
-
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
+$H_o:$ there are equal or constant variances,  $\alpha$ = 0.05  
 $H_a:$ there are unequal or non-constant variances    
-
+</p>
 ```{r}
 pacman::p_load( "olsrr" )
 ols_test_breusch_pagan(model.tr)
 ```
-
+<div class = "blue">
 The Breush-Pagan test creates a statistic that is chi-squared distributed and for this data that statistic = 4.73163.
-The p-value is the result of the chi-squared test and the null hypothesis is rejected for p-value < 0.05. With the p value of 0.029 (<0.05), __the null hypothesis__ of homoskedasticity would be __rejected__.We should conclude that variance
-around regression line is not constant throughout its range.
-
-## Using the model based on the training sample to predict 'time.years'(years until death) for those in the testing sample. Assessing the quality of model based on the training sample when used on the testing sample data.  
-
-## Predicting 'time.years' using the training model on the testing dataset
-
-“predict()” evaluates the model equation on values of 'age', 'differ', 'extent', 'loccomp','node4' for each respondent in the testing sample. While the model was based on those respondents in the training sample, the respondents in the testing sample did not contribute to those calculations and can be considered to be “fresh” or “new” subjects.
-
-__The code-chunk below predicts the time.years for the test, or holdout, sample of patients using the model built on the training data.__
-
-```{r}
-model.te<-lm(time.years ~ age + differ + extent + loccomp + node4, test)
-predicted.tr.te <- predict(model.tr, newdata=test  )
-predicted.tr.te
-actual <- test$ time.years # actual attitudes for the testing sample
-x<- as.data.frame(cbind(actual, predicted.tr.te)) 
-```
-
-### Assessing the model based on the training sample when used on the testing sample data. 
-
-#### Scatter plots of Predicted vs Actual
+The p-value is the result of the chi-squared test and the null hypothesis is rejected for p-value < 0.05. We should conclude that variance around regression line is not constant throughout its range.
+</div>
+### Scatter plots of Predicted vs Actual
+Scatter plots of Predicted vs Actual is used to understand how well the regression model makes predictions for different response values.  A perfect regression model has a predicted response equal to the true response, so all the points lie on a diagonal line. The vertical distance from the line to any point is the error of the prediction for that point. A good model has small errors, and so the predictions are scattered near the line.
 
 ```{r,  fig.width=5, fig.height=5}
 scatterplot(x$predicted~x$actual, regLine=TRUE, smooth=FALSE, boxplots=FALSE, data=colon.data,col = "red", main = "Scatterplot of Predicted vs Actual " ,xlab = "Actual",ylab = "Predicted")
 ```
+<div class = "blue">
+It may be concluded that the model has a weak Goodness of fit since most of the points are foggy or dispersed (away from the diagonal line).
 
-Scatter plots of Predicted vs Actual is used to understand how well the regression model makes predictions for different response values.  A perfect regression model has a predicted response equal to the true response, so all the points lie on a diagonal line. The vertical distance from the line to any point is the error of the prediction for that point. A good model has small errors, and so the predictions are scattered near the line.
-
-Hence, it may be concluded that the model has a weak Goodness of fit since most of the points are foggy or dispersed (away from the diagonal line).
-
-From this scatter plot, it can also be inferred that the residuals are heteroskedastic. This means that the variance of the error is not constant across various levels of the dependent variable. As a result, the standard errors of regression coefficients are unreliable and may be understated.
+From this scatter plot, it can also be inferred that the residuals are heteroscedastic. This means that the variance of the error is not constant across various levels of the dependent variable. As a result, the standard errors of regression coefficients are unreliable and may be understated.
 
 The analysis above, further mandates the assessment of goodness of the model based on the training sample when used on the testing sample data. 
-
+</div>
 ## Correlation between actual and predicted values of the dependent variable time.years
-
-___Stating the Hypothesis___
-
-Ho: correlation = 0 i.e., actual and predicted values of the dependent variable, time.years, are __statistically independent__, a risk of a Type 1 error, = α=0.05
-
-Ha: correlation ≠ 0 i.e., actual and predicted values of the dependent variable, time.years, are __statistically correlated__ , a risk of a Type 1 error, = α=0.05 are correlated a risk of a Type 1 error, = α=0.05
-
-___Testing Hypothesis___
-
+<p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
+$H_o$: $\rho$ = 0, $\alpha$ = 0.05 
+i.e., actual and predicted values of the dependent variable, time.years, are statistically independent.  
+$H_a$: $\rho \ne$ 0   
+i.e., actual and predicted values of the dependent variable, time.years, are statistically correlated.  
+</p>
 ```{r,  fig.width=5, fig.height=5}
 ( c<- cor.test(x$actual,x$predicted))
 library(sjPlot)
 tab_corr(x, digits=2, show.p=TRUE, p.numeric=TRUE)
 ```
-___Interpretations___
-
-From the analysis above, it can be inferred that actual and predicted values of the dependent variable, Life Expectancy, are significantly correlated (r = 0.365843  , p = 0.00000005116). Since p < 0.05, the null hypotheses can be rejected. Also, the confidence interval does not include 0.
-The correlation between the actual and predicted values for those in the test sample is very high, indicating that the predicted values that are close to the actual data values. Hence, Prediction has been done well. 
-
+<div class = "blue">
+From the analysis above, it can be inferred that actual and predicted values of the dependent variable, Life Expectancy, are significantly correlated (r = 0.3494662, p = 0.00002843). Since p < 0.05, the null hypotheses can be rejected. Also, the confidence interval does not include 0.
+The correlation between the actual and predicted values for those in the test sample is very high, indicating that the predicted values that are close to the actual data values. Hence, prediction has been done well. 
+</div>
 ## Conclusion
-
-The regression model is  very well able to predict the dependent variable,time.years'(years until death)
-
+<div class ="blue">
+While our model did not have a perfect fit, it provided important information that shows having 4 or more lymph nodes, knowing the extent of the local spread, and the primary location of the tumor have importance on life expectancy in years.
+</div>
 # Survival analysis
-
 Just like with the regression models, we have to start with a null model.  The table for KM analysis on all cases for the null model is below.
 
 ```{r }
@@ -1193,24 +1176,22 @@ survdiff(Surv(time, status)~ rx, data=colon.data, rho=0)
 <div class = "blue">
 Above we see a chi square value of 4.1 and a p value of .04. We do reject the null hypothesis as the p-value is .04 and  below our threshold of .05. This means there is a  difference between the Lev treatment and Lev+5FU colon cancer patients.
 </div>
+
 # Summative Conclusion
-## Distributions of Variables
 
-* Demographic Distribution: With regards to the demographic distribution, there is an approximately equal distribution of males and females in the study. The study population is primarily in the 60+ age group followed by the 40-59 year subset. A very small proportion belongs to <40 years age group.
-
-* Treatment Groups: We considered two separate treatment groups for the analysis and both groups had an approximately equal representation.
-
-*Tumor Descriptor: The following colon cancer variables were reviewed as part of the visualization
-   * Perforation: Almost all tumors did not perforate the colon.
+  We cleaned the data from the study to suit our objectives and assessments.  With regards to the demographic distribution, there is an approximately equal distribution of males and females in the study. The study population is primarily in the 60+ age group followed by the 40-59 year subset. A very small proportion belongs to <40 years age group.  
+  We considered two separate treatment groups for the analysis and both groups had an approximately equal representation.  
+  The following colon cancer variables were reviewed as part of the visualization:  
+   * Perforation: Almost all tumors did not perforate the colon.  
    * Obstruction: Majority of tumors did not obstruct the colon.  
-   * Adherence; Majority of tumors did not adhere to nearby organs.
-   * Differentiation: Majority of tumors had a histological differentiation of moderate.
-   * Extent: Majority of the extent of localized tumor spread was to the serosa (lining) of the colon.
-   * 5 Year Mortality Rate: Slightly more subjects were alive at the five year mark.
-   * Lymph node Affected: Majority of the tumors did not effect more than four lymph nodes.
-   
-## Correlation of Variables
-## Stepwise (Linear) Regression
-## Logistic Regression
-## Survival Analysis
-# Application
+   * Adherence; Majority of tumors did not adhere to nearby organs.  
+   * Differentiation: Majority of tumors had a histological differentiation of moderate.  
+   * Extent: Majority of the extent of localized tumor spread was to the serosa (lining) of the colon.  
+   * 5 Year Mortality Rate: Slightly more subjects were alive at the five year mark.  
+   * Lymph node Affected: Majority of the tumors did not effect more than four lymph nodes.  
+<br>
+  The logistic regression model built to assess mortality within five years did not have a good fit, however it pointed out that factors such as age group, number of lymph nodes effected, and the extent of the spread have an impact on mortaility within five years.
+  Stepwise regression create a model that also had a difficult fit due to residuals, however it also pointed out that having more than four lymph nodes effected, the extent of the tumor spread, and the location of the primary tumor had an importance on time until death - treatment did not.
+  Survival analysis indicated that probabilty of survival was highest in hte first 100 days regardless of treatment.  However, the adjuvant therapy of Levimasole and Fluorouracil provided a longer time for survival.
+  <br>
+  In summary, can can be said that while adjuvant therapy promotes a longer time until death, factors such as lymph node involvement, and extent of tumor spread have a higher impact on mortality.
