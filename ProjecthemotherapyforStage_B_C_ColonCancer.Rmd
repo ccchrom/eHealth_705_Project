@@ -53,8 +53,8 @@ We aim to achieve this by:<br>
      4.  Using stepwise (linear) regression to obtain a model that best describes the impact of specific variables on time until death.  
      5.	Assessing whether there are differences in survival (or cumulative incidence of event) among the two treatment groups.    
      6.  Using correlation and Variance Inflaction Factors (VIF) to investigate if any of the tumor descriptors or demographics have an impact on each other.   
-     7.	Use relative importance testing to assess which of the tumor descriptors or demographics have the greatest impact on mortality.
-     9.  Testing our constructed regression models on a split test sample to assess their quality.  
+     7.	Use relative importance testing to assess which of the tumor descriptors or demographics have the greatest impact on mortality.  
+     8.  Testing our constructed regression models on a split test sample to assess their quality.  
 </div>
 
 # Read the file  
