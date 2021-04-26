@@ -135,7 +135,6 @@ describe(colon.data)
 ```
 ## Missing Values and Treatment
 In this section, the total count of missing values (NA) in each column is identified and treated *Note* - Zeros are not treated as part of treating missing values as zeros are one of the valid response outputs.
-
 ```{r}
 MD <- colSums(is.na(colon.data))
 library(kableExtra)
@@ -408,9 +407,8 @@ grid.arrange(p05,p06,p07,p08, top = "Tumor Descriptors",
 
 ## Preliminary Statistical Findings
 <div class = "blue">
-Below are the preliminary findings based on the graphs and the summary below.  
+Below are the preliminary findings based on the graphs above and the summary below.  
 The cleaned, recoded sample has total of 551 observations.    
-
 **Demographic Distribution**  
 * Sex - A fairly equal distribution between Male and Female.  
 * Age Group - Majority of the observation belongs to 60+ age group.  
@@ -432,7 +430,6 @@ The cleaned, recoded sample has total of 551 observations.
 ```{r echo=TRUE, message=FALSE, error=FALSE, warning=FALSE}
 summary(colon.data)
 ```
-
 # Splitting into Training and Testing Samples
 <div class = "blue">
 In order to do further analysis, we have to create training and testing samples  The training sample will be used to create an equation to show the impact that tumor characteristics and treatment will have on life expectancy.  The test sample is used to test that equation for it's accuracy.
@@ -716,7 +713,7 @@ Even so, the model can not be used reliably to determine the 5 year life status 
 </div>
 
 # Multiple Regression using All Predictor Variables  
-A stepwise regression is also use to analyze the impact that treatment and other factors have on life expectancy.  We use the same independent factors as the logistic regression did.  Using stepwise (or multiple linear) regression requires that the dependent variable is numeric - which is why we are using 'time.years' instead of the factor mort-5yr.  This is done to compare the results and add or remove validity from the logistic regression.  Moreover, it helps in determining the overall fit of the model and the relative contribution (or strength) of each of the independent variable in explaining the variance. 
+A stepwise regression is used to analyze the impact that treatment and other factors have on life expectancy.  We use the same independent factors as the logistic regression did.  Using stepwise (or multiple linear) regression requires that the dependent variable is numeric - which is why we are using 'time.years' instead of the factor mort-5yr.  This is done to compare the results and add or remove validity from the logistic regression.  Moreover, it helps in determining the overall fit of the model and the relative contribution (or strength) of each of the independent variable in explaining the variance. 
 
 The hypotheses for this is as follows:
 <p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
@@ -792,7 +789,7 @@ RegModel.2 <-
   lm(time.years ~ rx + extent + loccomp + node4,
    data=colon.data)
 tab_model(
-  RegModel.1,step,RegModel.2 ,
+  RegModel.1,RegModel.2 ,
   title = "Regression models with 6 predictor variables and with 11 predictor variables",
   show.stat = TRUE,
   digits = 3,
@@ -841,7 +838,6 @@ colnames(pm) <- c("Features", "Importance", "Rankings")
 is.num <- sapply(pm, is.numeric)
 pm[is.num] <- lapply( pm[is.num], round, 3)
 tab_df(pm)
-
 theme_set(  theme_bw( ))
 ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
   geom_bar(stat="identity", fill="blue", colour="black") + 
@@ -857,7 +853,6 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
   theme(axis.title.y=element_text(
                                  face="bold", color="black",size=14))+
   labs(y= "Relative impacts of Variables", x= "Variables")
-
 ```
 <div class = "blue">
 On investigating the relative importance of the variables in the final model, it can be concluded that  __node4': more than 4 positive lymph nodes'__, has the greatest impact on years until death. While 'extent'(Extent of local spread) is the second most important driver.
@@ -951,7 +946,6 @@ ggplot(pm, aes(x= reorder( Features,  Importance ), y=  Importance ) ) +
   theme(axis.title.y=element_text(
                                  face="bold", color="black",size=14))+
   labs(y= "Relative impacts of Variables", x= "Variables")
-
 ```
 <div class ="blue">
 It is noted once again that'node4' has the highest lmg value, followed by the 'extent', then 'loccomp' when assessing their impact on 'time.years'. 
