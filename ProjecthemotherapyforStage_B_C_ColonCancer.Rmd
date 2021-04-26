@@ -179,8 +179,7 @@ Below tree diagram shows:
 library(vtree)
 vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
 ```
-
-Below graphs are plotted to understand the Demographic distribution, treatment distribution, time to treatment and the tumor descriptors.
+Some preliminary observations for the variables are plotted to understand the Demographic distribution, treatment distribution, time to treatment and the tumor descriptors.
 ```{r echo=TRUE, message=FALSE, warning=FALSE, error=FALSE, fig.width=8, fig.height=8, comment=NA}
 library(ggplot2)
 library(dplyr)
@@ -410,8 +409,7 @@ grid.arrange(p05,p06,p07,p08, top = "Tumor Descriptors",
 ## Preliminary Statistical Findings
 <div class = "blue">
 Below are the preliminary findings based on the graphs and the summary below.  
-The cleaned, recoded sample has total of 551 observations.  
-Some preliminary observations for the variables used in the analysis below:  
+The cleaned, recoded sample has total of 551 observations.    
 
 **Demographic Distribution**  
 * Sex - A fairly equal distribution between Male and Female.  
@@ -1134,9 +1132,7 @@ In the plot above:
 * Confidence bands for each survival curves are displayed in their respective colors.
 * Confidence bands are wide at the tail.
 * At time zero, the survival probability is 1.0 (or 100% of the participants are alive).
-* From the time of approx 10 to 100, probability of survival for those on standard treatment are higher than probability of those on test treatment.
-* After the time approx 100, the probability of survival for those on the standard treatment gets lower compared to the probability of survival for those on the test treatment.
-* From the graph, it shows the test treatment is less effective than standard treatment in the beginning phase (till time 100) and after that test treatment is superior than the standard treatment.
+* The survival probability of the Lev group is lower than the Lev+FU.
 * p-value is the p-value of the Log-Rank test comparing the treatment groups
 * Risk table below the plot shows absolute number of individuals at risk for both the treatment groups.
 * n.censor plot displays the number of censor subjects at the time. There is no censor after time approx 250.
