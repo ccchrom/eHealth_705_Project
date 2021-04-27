@@ -395,8 +395,8 @@ p07 <- ggplot(plotdata6,
 p08 <- ggplot(colon.data, aes(x=time.years)) + 
   geom_density() + geom_vline(aes(xintercept=mean(time.years)),
             color="blue", linetype="dashed", size=1)+
-  labs(x = "Density", 
-       y = "time in years", 
+  labs(x = "time in years", 
+       y = "Density", 
        title  = "Time Until Death in Years")
             
 pacman::p_load("Rmisc")
