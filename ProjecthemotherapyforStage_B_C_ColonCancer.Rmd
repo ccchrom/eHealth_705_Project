@@ -34,27 +34,31 @@ colorize <- function(x, color) {
 }
 ```  
 # Abstract
-The [Canadian Cancer Society](https://www.cancer.ca/en/cancer-information/cancer-type/colorectal/statistics/?region=on) state that "Colorectal cancer is expected to be the third most commonly diagnosed cancer in Canada in 2020 (excluding non-melanoma skin cancers). It is the second leading cause of death from cancer in men, and the third leading cause of death from cancer in women in Canada.".  We aim to use the data from Moertel et. al (1990) do assess the factors that impact mortality in those with Type B/C Colon Cancer, as well as comparing the treatment of [levimasole](https://go.drugbank.com/drugs/DB00848) against adjuvant therapy with Levimasole and [fluorouracil](https://go.drugbank.com/drugs/DB00544).  Regressions were done - both stepwise and logistic - against two indicators of mortality - living or deceased at the 5 year mark (mort_5yr), and time until death in years (time.years).  Survival analysis was also performed on the data.
-From our analysis, it was noted that the adjuvant therapy of Levimasole and Fluorouracil had longer surival rates than just Levimasole alone.  Our regression analyses did however, point out that tumor descriptors, such as local extend of the spread, and having more than four lymph nodes effects, had more of an impact on life expectancy than treatment.
+  The [Canadian Cancer Society](https://www.cancer.ca/en/cancer-information/cancer-type/colorectal/statistics/?region=on) state that "Colorectal cancer is expected to be the third most commonly diagnosed cancer in Canada in 2020 (excluding non-melanoma skin cancers). It is the second leading cause of death from cancer in men, and the third leading cause of death from cancer in women in Canada.".  We aim to use the data from Moertel et. al (1990) do assess the factors that impact mortality in those with Type B/C Colon Cancer, as well as comparing the treatment of [Levimasole](https://go.drugbank.com/drugs/DB00848) against adjuvant therapy with Levimasole and [Fluorouracil](https://go.drugbank.com/drugs/DB00544).  Regressions were done - both stepwise and logistic - against two indicators of mortality - living or deceased at the 5 year mark (mort_5yr), and time until death in years (time.years).  Survival analysis was also performed on the data.
 
+From our analysis, it was noted that the adjuvant therapy of Levimasole and Fluorouracil had longer surival rates than just Levimasole alone.  Our regression analyses did however, point out that tumor descriptors, such as local extend of the spread, and having more than four lymph nodes effects, had more of an impact on life expectancy than treatment.
+  
 # Objectives 
 <style>
 div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 </style>
 <div class = "blue">
 There are two main objectives we are trying to achieve:  
-    1.  To find which tumor descriptors and demographics have the greatest impact on life expectancy.  
-    2.  To confirm using our own process that adjuvant therapy with the combination of Levamisole and Fluorouracil increases probability of survival compared with no adjuvant therapy – using only Levamisole.  
+
+1.	To find which tumor descriptors and demographics have the greatest impact on life expectancy.  
+2.	To confirm using our own process that adjuvant therapy with the combination of Levamisole and Fluorouracil increases probability of survival compared with no adjuvant therapy – using only Levamisole.
+
 
 We aim to achieve this by:<br>
-     1.  Cleaning the data from the original and filtering it to our testing needs
-     2.  Using distribution plots and tables to assess the distributions of variables.  
-     3.	Using a logistic regression model to investigate the association between five year life status and one or more categorical predictor variables.  
-     4.  Using stepwise (linear) regression to obtain a model that best describes the impact of specific variables on time until death.  
-     5.	Assessing whether there are differences in survival (or cumulative incidence of event) among the two treatment groups.    
-     6.  Using correlation and Variance Inflaction Factors (VIF) to investigate if any of the tumor descriptors or demographics have an impact on each other.   
-     7.	Use relative importance testing to assess which of the tumor descriptors or demographics have the greatest impact on mortality.  
-     8.  Testing our constructed regression models on a split test sample to assess their quality.  
+
+1.  Cleaning the data from the original and filtering it to our testing needs
+2.  Using distribution plots and tables to assess the distributions of variables.  
+3.	Using a logistic regression model to investigate the association between five year life status and one or more categorical predictor variables.  
+4.  Using stepwise (linear) regression to obtain a model that best describes the impact of specific variables on time until death.  
+5.	Assessing whether there are differences in survival (or cumulative incidence of event) among the two treatment groups.    
+6.  Using correlation and Variance Inflaction Factors (VIF) to investigate if any of the tumor descriptors or demographics have an impact on each other.   
+7.	Use relative importance testing to assess which of the tumor descriptors or demographics have the greatest impact on mortality.  
+8.  Testing our constructed regression models on a split test sample to assess their quality.  
 </div>
 
 # Read the file  
@@ -72,7 +76,7 @@ str(colon.data)
 # Investigating, Cleaning and Recoding the Data  
 ## Column descriptions  
 
-The description of the variables for this dataset are listed below.  They are also listed as factors.
+The description of the variables for this dataset are listed below.  It should be noted that they are also listed as factors.
 
 ```{r}
 df = as.data.frame(matrix( 
@@ -100,13 +104,13 @@ df = as.data.frame(matrix(
   byrow = TRUE))
 colnames(df) <- c("Variable", "Description")
 df %>%
-  kable(caption = "World Population Health: All Countries") %>%
+  kable(caption = "Colon Variable Descriptions") %>%
   kable_styling( bootstrap_options = "striped", full_width = F, position = "left", fixed_thead = T)
 ```
 
 ## Overview of Data
 <div class = "blue">
-Below tree diagram shows:
+The below tree diagram shows:
 
 * Total number of observations- 929
 * 33% of the observations are for patients who were given levamisole (Lev).
@@ -122,7 +126,7 @@ vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fil
 ```
 ## Converting Variables 
 <div class = "blue">
-Below, character variables are converted to factors, integers are converted to numbers, and the observation arm is filtered out.  This is done to assist with our analysis.  The removal of the observation group done to primarily focus on the comparison between adjuvant therapy and the current standard at that time, and to also focus on other factors - aside from treatment - that may effect survival within that group.
+Below, character variables are converted to factors, integers are converted to numbers, and the observation arm is filtered out.  This is done to assist with our analysis.  The removal of the observation group done to primarily focus on the comparison between adjuvant therapy and Levimasole, as well as to also focus on other factors - aside from treatment - that may effect survival within that group.
 </div>
 ```{r}
 library(dplyr)
@@ -144,12 +148,13 @@ MD[c(3:14,27,29:30)] %>%
 ```
 <div class = "blue">
 It is noted that within this dataset, that there are already factor versions of the variables.  To be sure not to double count, below is a summary of the NAs:  
-   * obstruct - 15  
-   * nodes - 15  
-   * differ - 16  
-   * surg - 11  
-   * loccomp - 14  
-   * mort_5yr - 8  
+
+* obstruct - 15  
+* nodes - 15  
+* differ - 16  
+* surg - 11  
+* loccomp - 14  
+* mort_5yr - 8  
    
 The total of NAs is 79 - which is roughly 12% of the filtered sample of 614.  We chose to omit these values due to the large sample size.  There was worry that if we imputed this data - which is mostly two-level factors - that there may be a large margin of error and it may skew our model.
 </div>
@@ -161,24 +166,25 @@ na.omit()
 ```
 # Investigating the Cleaned Data
 ## Visual Representation 
-The below table and vtree give a quick glance at the cleaned data
+The following table gives a quick glance at the cleaned data
 ```{r}
 colon.data %>% datatable()
 ```
 <div class = "blue">
  
-Below tree diagram shows:  
-     * Total number of observations in the cleaned dataset: 551  
-     * 51% of the observations are for patients who were given Levamisole (Lev).  
-     * 49% were given Levamisole + Fluorouracil (Lev +5FU)  
-     * There are almost equal distribution of males and females in the study. There are more females on the Lev+FU treatment.  
-     * Majority of the study population is from +60 age group followed by 40-59 years and a very small proportion belong to <40 years age group. There is approximately equal distribution of the population in the 3 age group categories for both the treatments.  
+The below tree diagram shows:  
+
+* Total number of observations in the cleaned dataset: 551  
+* 51% of the observations are for patients who were given Levamisole (Lev).  
+* 49% were given Levamisole + Fluorouracil (Lev +5FU)  
+* There are almost equal distribution of males and females in the study. There are more females on the Lev+FU treatment.  
+* Majority of the study population is from +60 age group followed by 40-59 years and a very small proportion belong to <40 years age group. There is approximately equal distribution of the population in the 3 age group categories for both the treatments.  
 </div>
 ```{r echo=FALSE, , fig.align="center", fig.width=6, fig.height=6, fig.cap="Figure 2: Tree Diagram of Cleaned Colon Dataset"}
 library(vtree)
 vtree(colon.data, c("rx.factor", "sex.factor", "age.factor"), horiz = FALSE, fillcolor = c(restecg = "#e7d4e8", cp = "#99d8c9"), keep = list(restecg = c("ST-T abnormality")))
 ```
-Some preliminary observations for the variables are plotted to understand the Demographic distribution, treatment distribution, time to treatment and the tumor descriptors.
+Some preliminary observations for the variables are plotted to understand the demographic distribution, treatment distribution, time to treatment and the tumor descriptors.
 ```{r echo=TRUE, message=FALSE, warning=FALSE, error=FALSE, fig.width=8, fig.height=8, comment=NA}
 library(ggplot2)
 library(dplyr)
@@ -404,20 +410,22 @@ grid.arrange(p01,p02,p03,p04, top = "Tumor Descriptors",
 grid.arrange(p05,p06,p07,p08, top = "Tumor Descriptors",
             layout_matrix = matrix(c(1,2,3,4), ncol=2, byrow=TRUE)) 
 ``` 
-
 ## Preliminary Statistical Findings
 <div class = "blue">
-Below are the preliminary findings based on the graphs above and the summary below.  
-The cleaned, recoded sample has total of 551 observations.    
+The cleaned, recoded sample has total of 551 observations.  The preliminary findings based on the graphs above and the summary below are as follows:  
+   
 **Demographic Distribution**  
+
 * Sex - A fairly equal distribution between Male and Female.  
 * Age Group - Majority of the observation belongs to 60+ age group.  
       
 **Treatment Indicators**  
+
 * Treatment - 15 more observations in the Levimasole group.   
 * Time to Treatment (surg) - Majority of observations had a shorter time to treatment - meaning within 7 to 20 days.  
       
 **Tumor Descriptors**  
+
 * Obstruction - Majority of the observations have no obstructive tumors.  
 * Perforation - Majority of the observations is "No" while a very few observations belong to "Yes".    
 * Adherence - Majority of the observation is "No" for adherence to nearby organs.  
@@ -433,6 +441,7 @@ summary(colon.data)
 # Splitting into Training and Testing Samples
 <div class = "blue">
 In order to do further analysis, we have to create training and testing samples  The training sample will be used to create an equation to show the impact that tumor characteristics and treatment will have on life expectancy.  The test sample is used to test that equation for it's accuracy.
+</div>
 ```{r , "sample_splitting", fig.width=5, fig.height=5}
 pacman::p_load(rsample)
 set.seed(78)
@@ -441,6 +450,7 @@ train <- training(train_test_split)
 test <- testing(train_test_split)
 (samp <- dim(train_test_split))
 ```  
+<div class = "blue">
 After splitting the complete sample of `r samp[3]` subjects, `r samp[1]` were selected for the training sample and `r samp[2]` for the testing (or holdout) sample.  
 </div>
 # Logistic Regression using Five Year Mortality  
@@ -452,7 +462,6 @@ The NULL model is created in order to compare our other models to it and assess 
 frq( colon.data$mort_5yr , out="v", title= "Sample distribution between dead and alive patients")
 ```
 <br>
-<div class = "blue">
 The Null model is related to the null hypothesis. For a logistic regression model like: 
 $Probability(mortalityAt5years) = f( constant + \beta_1 * X_1 + \epsilon)$, the hypotheses are:
 
@@ -462,7 +471,7 @@ $H_a: \beta_1 \ne 0$
 </p>
 
 If the null hypothesis could not be rejected, the equation would be: $Probability(mortalityAt5years) = f( constant + \epsilon )$, where epsilon represents random error.
-
+<div class = "blue">
 The code-chunk below sets up the null model as "mort_5yr ~ 1" and shows its "Null deviance" of 750.68, which measures the variation among values of the response variable. That deviance becomes a basis of comparison for all other models, as well as the AIC (Akaike Information Criterion - a measurement of the accuracy of the model). If a model can't significantly beat the Null model by producing a lower deviance and AIC, it is not worth pursuing.  
 </div>
 ```{r }
@@ -478,9 +487,9 @@ coef(null_model) %>%  exp()
 ```  
 <div class = "blue">
 The odds of "Alive after 5 years" is $\frac{318}{233}$ = `r 318/233` from the frequency table above, which is the same as the odds ratio of the model above. This really just represents informed guessing. If you knew that 57.71% of the sample will be alive after 5 years and you were asked to guess if a succession of patients are alive or dead, you would tend to guess "alive" slightly often than "died". You should attempt to adjust your guessing so that "alive" is mentioned $\frac{318}{233} - 1$ = 36.48% more often than "died".
-
-Of course, we will need some way to test if the model using a predictor variable is any better than the Null model. We will return to the Null model later and use it as a comparison to see if other models improve on the Null.
 </div>
+Of course, we will need some way to test if the model using a predictor variable is any better than the Null model. We will return to the Null model later and use it as a comparison to see if other models improve on the Null.
+
 ## Use All Variables to Perform Logistic Regression   
 <div class = "blue">
 The variables: "extent of local spread", "age" group and "more than 4 positive lymph nodes" seem to be the main predictors of the 5 year life status. 
@@ -524,14 +533,13 @@ tab_model(  model_reg_all, model_reg_extent_age_node4, null_model, show.p=TRUE, 
 ```
 
 ## ANOVA  
-<div class = "blue">
 Here we use ANOVA to check if the chosen model deviance is significantly different from the deviance of the NULL model.  The null hypothesis is that the deviances are the same.
 
 <p style="border:3px; border-style:solid; border-color:#2B547E; padding: 1em;">
 $H_o: \mu_1 = \mu_2 = \mu_3 = ...$ risk of a Type 1 error = $\alpha = 0.05$ or something less.  
 $H_a:$ at least one of the means is different from the others.
 </p>
-
+<div class = "blue">
 The below ANOVA test indicates that it is significantly different ( p = 0.00000000000000022 < 0.05)
 </div>
 ```{r}
@@ -571,9 +579,10 @@ summary(training_model)
 **The selected predictors from the full sample appear to also be significant with the training model.**
 
 The intercept represent the 'alive' odds of a patient with the following characteristics:  
-  * The extent of local spread of the tumor is "Contiguous structures – meaning nearby organs"  
-  * The age group is '<40 years'    
-  * With less than 4 positive lymph nodes  
+
+* The extent of local spread of the tumor is "Contiguous structures – meaning nearby organs"  
+* The age group is '<40 years'    
+* With less than 4 positive lymph nodes  
 
 The odds being alive for this patient is $e^{-2.5156}$  = `r exp(-2.5156)`
 
@@ -640,9 +649,9 @@ The probabilities of being alive for the first 6 subjects are below:
 ```{r}
 training_model$ fitted.values[1:6]
 ```
-
-These probabilities can be compared with the actual life status of each patient:
 </div>
+These probabilities can be compared with the actual life status of each patient:
+
 ```{r}
 probs <- training_model$ fitted.values[1:6]
 mort_5yr_model <- ifelse(probs > 0.5, "Alive", "Died")
@@ -720,7 +729,7 @@ The hypotheses for this is as follows:
 $H_o$: coefficient  = 0, a risk of a Type 1 error, = $\alpha = 0.05$  
 i.e., no statistically significant relationship between each independent variable and the dependent variable.  
 $H_a$: coefficient ≠ 0, a risk of a Type 1 error, = $\alpha = 0.05$  
-.e., significant relationship between each independent variable and the dependent variable.
+i.e., significant relationship between each independent variable and the dependent variable.
 </p>
 ## The Full Model
 Below is the model on the full sample using all tumor descriptors and demographics.
@@ -779,7 +788,7 @@ step <- stepAIC(RegModel.1, direction="both")
 step
 ```
 <div class = "blue">
-Using the stepAIC() function, it appears that the differentiation, extent of spread, location of primary tumor have the greatest impact when assessing AIC.
+Using the stepAIC() function, it appears that the treatment, age, differentiation, extent of spread, and location of primary tumor have the greatest impact when assessing AIC.
 </div>
 ## Comparing the Models
 
@@ -1123,6 +1132,7 @@ For the Lev+5FU treatment group, in 1511 days time, 176 people had survived and 
 In the plot above:
 
 * The horizontal axis (x-axis) represents time in days, and the vertical axis (y-axis) shows the probability of surviving or the proportion of people surviving. The lines represent survival curves of the two treatment groups. A vertical drop in the curves indicates an event. The vertical tick mark on the curves means that a patient was censored at this time.
+
 * Confidence bands for each survival curves are displayed in their respective colors.
 * Confidence bands are wide at the tail.
 * At time zero, the survival probability is 1.0 (or 100% of the participants are alive).
@@ -1149,24 +1159,26 @@ Above we see a chi square value of 4.1 and a p value of .04. We do reject the nu
 </div>
 
 # Summative Conclusion
+<div class = "blue">
   We cleaned the data from the study to suit our objectives and assessments.  With regards to the demographic distribution, there is an approximately equal distribution of males and females in the study. The study population is primarily in the 60+ age group followed by the 40-59 year subset. A very small proportion belongs to <40 years age group.  We considered two separate treatment groups for the analysis and both groups had an approximately equal representation.  
-The following colon cancer variables were reviewed as part of the visualization:  
-  * Perforation: Almost all tumors did not perforate the colon.  
-  * Obstruction: Majority of tumors did not obstruct the colon.  
-  * Adherence; Majority of tumors did not adhere to nearby organs.  
-  * Differentiation: Majority of tumors had a histological differentiation of moderate.  
-  * Extent: Majority of the extent of localized tumor spread was to the serosa (lining) of the colon.  
-  * 5 Year Mortality Rate: Slightly more subjects were alive at the five year mark.  
-  * Lymph node Affected: Majority of the tumors did not effect more than four lymph nodes.  
-<br>
-  The logistic regression model built to assess mortality within five years did not have a good fit, however it pointed out that factors such as age group, number of lymph nodes effected, and the extent of the spread have an impact on mortality within five years.
-<br>
-  Stepwise regression create a model that also had a difficult fit due to variation in residuals, however it also pointed out that having more than four lymph nodes effected, the extent of the tumor spread, and the location of the primary tumor had an importance on time until death - treatment did not.
-<br>
-  Survival analysis indicated that probability of survival was highest in the first 100 days regardless of treatment.  However, the adjuvant therapy of Levimasole and Fluorouracil provided a longer time for survival.
-<br>
-  In summary, it can can be said that while adjuvant therapy promotes a longer time until death, factors such as lymph node involvement, and extent of tumor spread have a higher impact on mortality in patients with Type B or C colon cancer.
-  
+The following colon cancer variables were reviewed as part of the visualization: 
+
+* Perforation: Almost all tumors did not perforate the colon.  
+* Obstruction: Majority of tumors did not obstruct the colon.  
+* Adherence; Majority of tumors did not adhere to nearby organs.  
+* Differentiation: Majority of tumors had a histological differentiation of moderate.  
+* Extent: Majority of the extent of localized tumor spread was to the serosa (lining) of the colon.  
+* 5 Year Mortality Rate: Slightly more subjects were alive at the five year mark.  
+* Lymph node Affected: Majority of the tumors did not effect more than four lymph nodes.  
+
+The logistic regression model built to assess mortality within five years did not have a good fit, however it pointed out that factors such as age group, number of lymph nodes effected, and the extent of the spread have an impact on mortality within five years.
+
+Stepwise regression create a model that also had a difficult fit due to variation in residuals, however it also pointed out that having more than four lymph nodes effected, the extent of the tumor spread, and the location of the primary tumor had an importance on time until death - treatment did not.
+
+Survival analysis indicated that probability of survival was highest in the first 100 days regardless of treatment.  However, the adjuvant therapy of Levimasole and Fluorouracil provided a longer time for survival.
+
+***In summary, it can can be said that while adjuvant therapy promotes a longer time until death, factors such as lymph node involvement, and extent of tumor spread have a higher impact on mortality in patients with Type B or C colon cancer.***
+</div>
 --- 
 &nbsp;
 <hr>
